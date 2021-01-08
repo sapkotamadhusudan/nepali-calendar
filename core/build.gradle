@@ -1,0 +1,55 @@
+plugins {
+    id 'java-library'
+    id 'kotlin'
+    id 'maven-publish'
+}
+
+def getVersionName = { ->
+    return "0.0.1"
+}
+
+def getArtifactId = { ->
+    return "core"
+}
+
+def getGroupId = { ->
+    return "com.maddy.calendar"
+}
+
+def getGitHubUrl = { ->
+    return "https://maven.pkg.github.com/sapkotamadhusudan/nepali-calendar"
+}
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+
+                groupId getGroupId()
+                artifactId getArtifactId()
+                version getVersionName()
+                // Place the path of your artifact here
+                artifact("$buildDir/libs/${getArtifactId()}.jar")
+            }
+        }
+        repositories {
+            maven {
+                name = "GitHubPackages"
+
+                url = uri(getGitHubUrl())
+                credentials {
+                    username = System.getenv("GITHUB_USER_NAME")
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+}
