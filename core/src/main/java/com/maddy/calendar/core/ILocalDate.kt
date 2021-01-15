@@ -14,26 +14,20 @@ abstract class ILocalDate {
     /**
      * The year.
      */
-    var year = 0
-        protected set(value) {
-            field = value
-        }
+    var year: Int
+        protected set
 
     /**
      * The month-of-year.
      */
-     var month: Short = 0
-        protected set(value) {
-            field = value
-        }
+    var month: Month
+        protected set
 
     /**
      * The day-of-month.
      */
-     var day: Short = 0
-        protected set(value) {
-            field = value
-        }
+    var day: Int
+        protected set
 
     abstract val type: Type
     protected abstract fun referenceDate(): ILocalDate
@@ -41,25 +35,32 @@ abstract class ILocalDate {
     protected abstract fun maxYear(): Int
     protected abstract fun minYear(): Int
 
-    private fun leapYear(year: Int): Boolean {
-        return if (type == Type.BS) false
-        else ((year % 4 == 0 || year % 100 != 0) && year % 400 == 0)
-    }
+    protected fun isLeapYear(year: Int): Boolean {
+        return if (type == Type.BS) {
+            false
+        } else {
+            if (year % 4 == 0) {
+                if (year % 100 == 0) {
+                    // Century Year must be divisible by 400 for Leap year
+                    year % 400 == 0
+                } else true
+            } else false
+        }
 
-    protected fun getFirstDayOfWeek(): Int = 0
+    }
 
     protected fun getDaysSinceReferenceDate(): Long {
         return daysDifference(this.referenceDate(), this)
     }
 
     private fun lengthOfYear(year: Int): Int {
-        val leap = if (leapYear(year)) 1 else 0
+        val leap = if (isLeapYear(year)) 1 else 0
         return monthDays().sum() + leap
     }
 
-    private fun lengthOfMonth(year: Int, month: Int): Int {
-        return if (leapYear(year) && month == 2) 29
-        else monthDays()[month - 1]
+    private fun lengthOfMonth(year: Int, month: Month): Int {
+        return if (isLeapYear(year) && month == Month.FEBRUARY_JESTHA) 29
+        else monthDays()[month.getValue() - 1]
     }
 
     /**
@@ -82,20 +83,42 @@ abstract class ILocalDate {
      * @return the length of the month in days, from 28 to 31
      */
     fun lengthOfMonth(): Int {
-        return lengthOfMonth(this.year, this.month.toInt())
+        return lengthOfMonth(this.year, this.month)
     }
 
-    fun dayOfWeek(): Int {
+    /**
+     * Returns the day of week, taking account of the weekOfMonth.
+     * <p>
+     * This returns the day of week of current day.
+     * For example, a day placed in Sunday would return 0.
+     *
+     * @return the length of the month in days, from 0 to 6
+     */
+    fun dayOfWeek(): DayOfWeek {
+        val firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY
         val daysSinceReferenceDate = this.getDaysSinceReferenceDate()
 
-        return (if (daysSinceReferenceDate > 0) {
-            ((daysSinceReferenceDate % 7) + this.getFirstDayOfWeek()) % 7
+        val weekOfMonthValue = firstDayOfWeek.getValue() - 1
+        val dayOfWeek = (if (daysSinceReferenceDate > 0) {
+            ((daysSinceReferenceDate % 7) + weekOfMonthValue) % 7
         } else {
-            (((7 - ((daysSinceReferenceDate * -1) % 7)) % 7) + this.getFirstDayOfWeek()) % 7
+            (((7 - ((daysSinceReferenceDate * -1) % 7)) % 7) + weekOfMonthValue) % 7
         }).toInt()
+        return DayOfWeek.of(dayOfWeek + 1)
     }
 
-    fun startDayOfWeek(): Int = this.atStartOfMonth().dayOfWeek()
+    abstract fun firstDayOfYear(): Int
+
+    /**
+     * Returns the start week of month, taking account of the weekOfMonth.
+     * <p>
+     * This returns the start weekDay of current month.
+     * For example, a month started with Sunday would return 0.
+     *
+     * @return the starting day of month
+     */
+    fun startDayOfWeek(): DayOfWeek =
+        this.atStartOfMonth().dayOfWeek()
 
     fun isCurrentMonth(): Boolean {
         val month = if (type == Type.AD) nowAD().month else nowBS().month
@@ -112,20 +135,24 @@ abstract class ILocalDate {
         if (dom > 0L) {
 
             if (dom <= 28L) {
-                return instance(this.year, this.month.toInt(), dom.toInt())
+                return instance(this.year, this.month, dom.toInt())
             }
 
             if (dom <= 59L) {
                 monthLen = lengthOfMonth().toLong()
                 if (dom <= monthLen) {
-                    return instance(this.year, this.month.toInt(), dom.toInt())
+                    return instance(this.year, this.month, dom.toInt())
                 }
 
-                if (this.month < 12) {
-                    return instance(this.year, this.month + 1, (dom - monthLen).toInt())
+                if (this.month < Month.DECEMBER_CHAITRA) {
+                    return instance(this.year, this.month.plus(1), (dom - monthLen).toInt())
                 }
 
-                return instance(checkValidYear(this.year + 1), 1, (dom - monthLen).toInt())
+                return instance(
+                    checkValidYear(this.year + 1),
+                    Month.JANUARY_BAISHAK,
+                    (dom - monthLen).toInt()
+                )
             }
 
             var dayDelta = daysToAdd
@@ -147,27 +174,27 @@ abstract class ILocalDate {
         }
     }
 
-    private fun addSingleDay() {
+    fun addSingleDay() {
         this.day++
         if (this.day > this.lengthOfMonth()) {
             this.day = 1
-            this.month++
-            if (this.month > 12) {
-                this.month = 1
+            val newMonth = this.month.plus(1)
+            if (newMonth == Month.JANUARY_BAISHAK) {
                 this.year++
             }
+            this.month = newMonth
         }
     }
 
-    private fun subtractSingleDay() {
+    fun subtractSingleDay() {
         this.day--
         if (this.day < 1) {
-            this.month--
-            if (this.month < 1) {
+            val newMonth = this.month.minus(1)
+            if (newMonth == Month.DECEMBER_CHAITRA) {
                 this.year--
-                this.month = 12
             }
-            this.day = this.lengthOfMonth().toShort()
+            this.month = newMonth
+            this.day = this.lengthOfMonth()
         }
     }
 
@@ -176,7 +203,7 @@ abstract class ILocalDate {
             return this
         }
         val isNegative = monthsToAdd < 0
-        val monthCount = year * 12L + (month - 1)
+        val monthCount = year * 12L + (month.getValue() - 1 /* TODO: Need to check this value */)
         val calcMonths: Long = monthCount + monthsToAdd // safe overflow
 
         val newYear = checkValidYear(
@@ -187,11 +214,11 @@ abstract class ILocalDate {
         )
         var newMonth = Helper.floorMod(calcMonths, 12).toInt() + 1
 
-        val newMaxDays = lengthOfMonth(newYear, newMonth)
-        var newDay = this.day.toInt()
+        val newMaxDays = lengthOfMonth(newYear, checkValidMonth(newMonth))
+        var newDay = this.day
 
         if (this.day > newMaxDays) {
-            newDay = this.day.toInt() - newMaxDays
+            newDay = this.day - newMaxDays
             newMonth = if (isNegative) newMonth - 1 else newMonth + 1
         }
         return of(newYear, newMonth, newDay, this.type)
@@ -202,10 +229,10 @@ abstract class ILocalDate {
             return this
         }
 
-        val newYear = checkValidYear(year+yearsToAdd.toInt())
-        val newDay = this.day.toInt().coerceAtMost(lengthOfMonth(newYear, this.month.toInt()))
+        val newYear = checkValidYear(year + yearsToAdd.toInt())
+        val newDay = this.day.coerceAtMost(lengthOfMonth(newYear, this.month))
 
-        return instance(newYear, month.toInt(), newDay)
+        return instance(newYear, month, newDay)
     }
 
     fun setDates(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
@@ -216,7 +243,7 @@ abstract class ILocalDate {
         val lengthOfMonth = copy.lengthOfMonth()
 
         if (dayOfMonth in 1..lengthOfMonth) {
-            copy.day = dayOfMonth.toShort()
+            copy.day = dayOfMonth
         }
         return copy
     }
@@ -228,19 +255,19 @@ abstract class ILocalDate {
      * @param month  the month-of-year to represent, not null
      * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
      */
-    private constructor(year: Int, month: Int, dayOfMonth: Int) {
+    private constructor(year: Int, month: Month, dayOfMonth: Int) {
         this.year = year
-        this.month = month.toShort()
-        this.day = dayOfMonth.toShort()
+        this.month = month
+        this.day = dayOfMonth
     }
 
     private fun checkValidYear(year: Int): Int {
         return year
     }
 
-    private fun checkValidMonth(month: Int): Short {
-        return if (month <= 0 || month > 12) 1
-        else month.toShort()
+    private fun checkValidMonth(month: Int): Month {
+        return if (month < Month.JANUARY_BAISHAK.getValue() || month > Month.DECEMBER_CHAITRA.getValue()) Month.JANUARY_BAISHAK
+        else Month.of(month)
     }
 
     fun reverse(): ILocalDate {
@@ -259,13 +286,13 @@ abstract class ILocalDate {
         return convert(this, Type.BS)
     }
 
-    private fun instance(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+    private fun instance(year: Int, month: Month, dayOfMonth: Int): ILocalDate {
         return if (this.type == Type.AD) ADLocalDate(year, month, dayOfMonth)
         else BSLocalDate(year, month, dayOfMonth)
     }
 
     fun copy(): ILocalDate {
-        return instance(year, month.toInt(), day.toInt())
+        return instance(year, month, day)
     }
 
     fun before(from: ILocalDate): Boolean {
@@ -289,11 +316,25 @@ abstract class ILocalDate {
 
     fun nextMonthWeeks(): Int = countWeek(instance(this.year, this.month + 1, 1))
 
-    fun atStartOfMonth(): ILocalDate = instance(year, month.toInt(), 1)
+    fun atStartOfMonth(): ILocalDate = instance(year, month, 1)
 
-    fun atStartOfYear(): ILocalDate = instance(year, 1, 1)
+    fun atStartOfYear(): ILocalDate = instance(year, Month.of(1), 1)
 
-    fun atEndOfMonth(): ILocalDate = instance(year, month.toInt(), lengthOfMonth())
+    fun atEndOfMonth(): ILocalDate = instance(year, month, lengthOfMonth())
+
+    operator fun compareTo(other: ILocalDate): Int {
+        var cmp = if (type == other.type) 0 else 1
+        if (cmp == 0) {
+            (year - other.year)
+            if (cmp == 0) {
+                cmp = (month.getValue() - other.month.getValue())
+                if (cmp == 0) {
+                    cmp = (day - other.day)
+                }
+            }
+        }
+        return cmp
+    }
 
     override fun toString(): String {
         return "ILocalDate { \"year\": $year, \"month\": $month, \"dayOfMonth\": $day, \"type\": $type  }"
@@ -309,10 +350,17 @@ abstract class ILocalDate {
             return ADLocalDate.now()
         }
 
-        fun of(year: Int, month: Int, dayOfMonth: Int, type: Type): ILocalDate {
-            return if (type == Type.BS)
-                BSLocalDate(year, month, dayOfMonth) else
-                ADLocalDate(year, month, dayOfMonth)
+        fun of(year: Int, month: Int, dayOfMonth: Int, type: Type = Type.BS): ILocalDate {
+            return if (type == Type.BS) ofBS(year, month, dayOfMonth)
+            else ofAD(year, month, dayOfMonth)
+        }
+
+        fun ofBS(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+            return BSLocalDate(year, Month.of(month), dayOfMonth)
+        }
+
+        fun ofAD(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+            return ADLocalDate(year, Month.of(month), dayOfMonth)
         }
 
         fun convert(date: ILocalDate, type: Type): ILocalDate {
@@ -323,7 +371,8 @@ abstract class ILocalDate {
             } else {
                 BSLocalDate.REFERENCE_DATE
             }
-            return iLocalDate.plusDays(date.getDaysSinceReferenceDate())
+            val daysToAdd = date.getDaysSinceReferenceDate()
+            return iLocalDate.plusDays(daysToAdd)
         }
 
         fun daysDifference(from: ILocalDate, to: ILocalDate): Long {
@@ -353,20 +402,51 @@ abstract class ILocalDate {
             return daysCount * isNegative
         }
 
-        fun countWeek(date: ILocalDate): Int {
+        /**
+         * Returns the count of week, taking account of the weekOfMonth.
+         * <p>
+         * This returns the total number of week of current month.
+         *
+         * @return the length of the month in days, from 4 to 5
+         */
+        fun countWeek(date: ILocalDate, firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY): Int {
             var startDayDate = date.atStartOfMonth()
-            var weekCount = if (startDayDate.dayOfWeek() == 0) 0 else 1
+            var weekCount = if (startDayDate.dayOfWeek() == firstDayOfWeek) 0 else 1
             val currentMonth = startDayDate.month
-            val nextMonth = if (currentMonth.toInt() == 12) 1 else currentMonth + 1
+            val nextMonth = if (currentMonth == Month.DECEMBER_CHAITRA) 1 else currentMonth + 1
 
             while (true) {
-                if (startDayDate.month.toInt() == nextMonth) break
-                if (startDayDate.dayOfWeek() == 0) weekCount++
+                if (startDayDate.month == nextMonth) break
+                if (startDayDate.dayOfWeek() == firstDayOfWeek) weekCount++
+                startDayDate = startDayDate.plusDays(1)
+            }
+            return weekCount
+        }
+
+        fun weekOfMonth(date: ILocalDate, firstDayOfWeek: DayOfWeek): Int {
+            var startDayDate = date.atStartOfMonth()
+            var weekCount = if (startDayDate.dayOfWeek() == firstDayOfWeek) 0 else 1
+            val currentMonth = startDayDate.month
+            val nextMonth = if (currentMonth == Month.DECEMBER_CHAITRA) 1 else currentMonth + 1
+
+            while (true) {
+                if (startDayDate.month == nextMonth) break
+
+                val dayOfWeek = startDayDate.dayOfWeek()
+                if (dayOfWeek == firstDayOfWeek) weekCount++
+
+                if (startDayDate.year == date.year
+                    && startDayDate.month == startDayDate.month
+                    && startDayDate.day == date.day
+                    && startDayDate.type == date.type
+                ) return weekCount
+
                 startDayDate = startDayDate.plusDays(1)
             }
             return weekCount
         }
     }
+
 
     /**
      * Constructor, previously validated.
@@ -375,7 +455,7 @@ abstract class ILocalDate {
      * @param month  the month-of-year to represent, not null
      * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
      */
-     class BSLocalDate : ILocalDate {
+    private class BSLocalDate : ILocalDate {
 
         val yearMonthSpanLookupTable = arrayOf(
             intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
@@ -487,22 +567,45 @@ abstract class ILocalDate {
 
         override fun maxYear() = 2200
 
-        override fun minYear() = 1901
+        override fun minYear() = 1999
+
+        override fun firstDayOfYear(): Int {
+            return daysSum(this.month)
+        }
+
+        private fun daysSum(month: Month): Int {
+            val monthDays = monthDays()
+            return when (month) {
+                Month.JANUARY_BAISHAK -> 1
+                Month.FEBRUARY_JESTHA,
+                Month.MARCH_ASADH,
+                Month.APRIL_SHRWAN,
+                Month.MAY_BHADRA,
+                Month.JUNE_ASHWIN,
+                Month.JULY_KARTIK,
+                Month.AUGUST_MANGSIR,
+                Month.SEPTEMBER_PAUSH,
+                Month.OCTOBER_MAGH,
+                Month.NOVEMBER_FALGUN,
+                Month.DECEMBER_CHAITRA -> daysSum(month - 1) + monthDays[month.getValue() - 2]
+                else -> daysSum(Month.DECEMBER_CHAITRA) + monthDays[Month.DECEMBER_CHAITRA.getValue() - 1]
+            }
+        }
 
         override val type: Type
             get() = Type.BS
 
-        constructor(year: Int, month: Int, dayOfMonth: Int) : super(year, month, dayOfMonth)
+        constructor(year: Int, month: Month, dayOfMonth: Int) : super(year, month, dayOfMonth)
 
         companion object {
-            val REFERENCE_DATE = BSLocalDate(2059, 1, 1)
+            val REFERENCE_DATE = BSLocalDate(2059, Month.JANUARY_BAISHAK, 1)
             fun now(): ILocalDate {
                 return ADLocalDate.now().reverse()
             }
         }
 
         private fun yearIndex(): Int {
-            val index = (this.year - 1901) % 100
+            val index = (this.year - 1999) % 100
             return if (index < 0) index * -1 else index
         }
     }
@@ -524,45 +627,40 @@ abstract class ILocalDate {
 
         override fun referenceDate() = REFERENCE_DATE
 
+        override fun firstDayOfYear(): Int {
+            val leap = if (isLeapYear(this.year)) 1 else 0
+            return when (this.month) {
+                Month.JANUARY_BAISHAK -> 1
+                Month.FEBRUARY_JESTHA -> 32
+                Month.MARCH_ASADH -> 60 + leap
+                Month.APRIL_SHRWAN -> 91 + leap
+                Month.MAY_BHADRA -> 121 + leap
+                Month.JUNE_ASHWIN -> 152 + leap
+                Month.JULY_KARTIK -> 182 + leap
+                Month.AUGUST_MANGSIR -> 213 + leap
+                Month.SEPTEMBER_PAUSH -> 244 + leap
+                Month.OCTOBER_MAGH -> 274 + leap
+                Month.NOVEMBER_FALGUN -> 305 + leap
+                Month.DECEMBER_CHAITRA -> 335 + leap
+                else -> 335 + leap
+            }
+        }
+
         override val type: Type
             get() = Type.AD
 
-        constructor(year: Int, month: Int, dayOfMonth: Int) : super(year, month, dayOfMonth)
+        constructor(year: Int, month: Month, dayOfMonth: Int) : super(year, month, dayOfMonth)
 
         companion object {
-            val REFERENCE_DATE = ADLocalDate(2002, 4, 14)
+            val REFERENCE_DATE = ADLocalDate(2002, Month.of(4), 14)
             fun now(): ILocalDate {
                 val now = Calendar.getInstance()
                 return ADLocalDate(
                     now.get(Calendar.YEAR),
-                    now.get(Calendar.MONTH),
+                    Month.of(now.get(Calendar.MONTH) + 1),
                     now.get(Calendar.DAY_OF_MONTH)
                 )
             }
-        }
-    }
-}
-
-object Helper {
-    fun floorDiv(x: Long, y: Long): Int {
-        var r = x / y
-        // if the signs are different and modulo not zero, round down
-        if (x xor y < 0 && r * y != x) {
-            r--
-        }
-        return r.toInt()
-    }
-
-    fun floorMod(x: Long, y: Long): Long {
-        return x - floorDiv(x, y) * y
-    }
-
-    fun addExact(x: Long, y: Long): Long {
-        val r: Long = x + y
-        return if (x xor r and (y xor r) < 0L) {
-            throw ArithmeticException("long overflow")
-        } else {
-            r
         }
     }
 }

@@ -1,11 +1,24 @@
 plugins {
     id 'java-library'
     id 'kotlin'
+    id 'com.jfrog.bintray' version "1.8.1"
     id 'maven-publish'
 }
 
 def getVersionName = { ->
-    return "0.0.1"
+    return "0.0.3"
+}
+
+def getDescription = { ->
+    return "A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali."
+}
+
+def getVCSUrl = { ->
+    return "https://github.com/sapkotamadhusudan/nepali-calendar"
+}
+
+def getLicense = { ->
+    return ["MIT"]
 }
 
 def getArtifactId = { ->
@@ -16,13 +29,19 @@ def getGroupId = { ->
     return "com.maddy.calendar"
 }
 
+def getPackageName = {->
+    return getGroupId() + ":" + getArtifactId()
+}
+
 def getGitHubUrl = { ->
     return "https://maven.pkg.github.com/sapkotamadhusudan/nepali-calendar"
 }
+
 afterEvaluate {
     publishing {
         publications {
             release(MavenPublication) {
+                from components.java
 
                 groupId getGroupId()
                 artifactId getArtifactId()
@@ -41,6 +60,28 @@ afterEvaluate {
                     password = System.getenv("GITHUB_TOKEN")
                 }
             }
+        }
+    }
+}
+
+// Bintray config
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ["release"]
+    pkg {
+        repo = "nepali-calendar"
+        name = getPackageName()
+        desc = getDescription()
+        licenses = getLicense()
+        vcsUrl = getVCSUrl()
+        version {
+            name = getVersionName()
+            vcsTag = getVersionName()
+            released = new Date()
         }
     }
 }

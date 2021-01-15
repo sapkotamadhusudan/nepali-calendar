@@ -18,7 +18,7 @@ class MainActivity : Activity() {
         welcomeTV.text = resources.getString(
             R.string.welcome_message,
             todayNepaliDate.year,
-            todayNepaliDate.month,
+            todayNepaliDate.month.getValue(),
             todayNepaliDate.day
         )
     }
