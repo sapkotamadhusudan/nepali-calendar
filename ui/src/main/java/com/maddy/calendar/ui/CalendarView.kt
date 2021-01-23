@@ -689,12 +689,12 @@ open class CalendarView : RecyclerView {
         this.startMonth = startMonth
         this.endMonth = endMonth
         this.firstDayOfWeek = firstDayOfWeek
-        finishSetup(
-            MonthConfig(
-                outDateStyle, inDateStyle, maxRowCount, startMonth,
-                endMonth, firstDayOfWeek, hasBoundaries, Job()
-            )
+
+        val config = MonthConfig(
+            outDateStyle, inDateStyle, maxRowCount, startMonth,
+            endMonth, firstDayOfWeek, hasBoundaries, Job()
         )
+        finishSetup(config)
     }
 
     /**

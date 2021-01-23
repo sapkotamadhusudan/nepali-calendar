@@ -10,7 +10,7 @@ data class CalendarMonth(
 ) : Comparable<CalendarMonth>, Serializable {
 
     val year: Int = yearMonth.year
-    val month: Int = yearMonth.month.getValue()
+    val month: Int = yearMonth.monthValue
 
     override fun hashCode(): Int {
         return 31 * yearMonth.hashCode() +
@@ -44,10 +44,10 @@ data class CalendarMonth(
     }
 }
 
-private fun YearMonth.compareToYearMonth(other: YearMonth): Int {
+fun YearMonth.compareToYearMonth(other: YearMonth): Int {
     var cmp = (year - other.year)
     if (cmp == 0) {
-        cmp = (month.getValue() - other.month.getValue())
+        cmp = (monthValue - other.monthValue)
     }
     return cmp
 }

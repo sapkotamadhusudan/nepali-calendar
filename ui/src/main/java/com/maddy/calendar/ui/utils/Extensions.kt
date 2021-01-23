@@ -14,18 +14,18 @@ internal fun ViewGroup.inflate(@LayoutRes layoutRes: Int, attachToRoot: Boolean 
     return LayoutInflater.from(context).inflate(layoutRes, this, attachToRoot)
 }
 
-internal inline fun Boolean?.orFalse(): Boolean = this ?: false
+internal fun Boolean?.orFalse(): Boolean = this ?: false
 
-internal inline fun Int?.orZero(): Int = this ?: 0
+internal fun Int?.orZero(): Int = this ?: 0
 
 val LocalDate.yearMonth: ILocalDate
-    get() = this.copy()
+    get() = this
 
 val LocalDate.next: ILocalDate
-    get() = this.plusMonths(-1)
+    get() = this.plusMonths(1)
 
 val LocalDate.previous: ILocalDate
-    get() = this.plusMonths(1)
+    get() = this.plusMonths(-1)
 
 internal const val NO_INDEX = -1
 

@@ -1,6 +1,7 @@
 package com.maddy.calendar.ui.model
 
 import com.maddy.calendar.core.DayOfWeek
+import com.maddy.calendar.core.Period
 import com.maddy.calendar.ui.utils.next
 import kotlinx.coroutines.Job
 
@@ -207,10 +208,11 @@ internal data class MonthConfig(
             outDateStyle: OutDateStyle
         ): List<List<CalendarDay>> {
             val year = yearMonth.year
-            val month = yearMonth.month.getValue()
+            val month = yearMonth.monthValue
 
-            val thisMonthDays = (1..yearMonth.lengthOfMonth()).map {
-                CalendarDay(LocalDate.of(year, month, it), DayOwner.THIS_MONTH)
+            val date = LocalDate.of(year, month, 1, yearMonth.type)
+            val thisMonthDays = (1..yearMonth.lengthOfMonth).map {
+                CalendarDay(date.atDay(it), DayOwner.THIS_MONTH)
             }
 
 
@@ -218,7 +220,8 @@ internal data class MonthConfig(
                 // Group days by week of month so we can add the in dates if necessary.
                 val groupByWeekOfMonth =
                     thisMonthDays.groupBy {
-                        LocalDate.weekOfMonth(
+                        Period.weeksBetween(
+                            it.date.atStartOfMonth(),
                             it.date,
                             firstDayOfWeek
                         )
@@ -228,13 +231,14 @@ internal data class MonthConfig(
                 val firstWeek = groupByWeekOfMonth.first()
                 if (firstWeek.size < 7) {
                     val previousMonth = yearMonth.plusMonths(-1)
-                    val inDates = (1..previousMonth.lengthOfMonth()).toList()
+                    val inDates = (1..previousMonth.lengthOfMonth).toList()
                         .takeLast(7 - firstWeek.size).map {
                             CalendarDay(
                                 LocalDate.of(
                                     previousMonth.year,
-                                    previousMonth.month.getValue(),
-                                    it
+                                    previousMonth.monthValue,
+                                    it,
+                                    yearMonth.type
                                 ),
                                 DayOwner.PREVIOUS_MONTH
                             )

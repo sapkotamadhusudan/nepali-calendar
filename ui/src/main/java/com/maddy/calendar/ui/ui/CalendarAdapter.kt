@@ -244,18 +244,21 @@ internal class CalendarAdapter(
     }
 
 
-//    #FIXME: Needed to Abstract away YearMonth from LocalDate
-//    internal fun getAdapterPosition(month: YearMonth): Int {
-//        return months.indexOfFirst { it.yearMonth == month }
-//    }
 
-    internal fun getAdapterPosition(date: LocalDate): Int {
-        return getAdapterPosition(CalendarDay(date, DayOwner.THIS_MONTH))
+    internal fun getAdapterPosition(month: YearMonth): Int {
+        return months.indexOfFirst {
+            it.yearMonth.compareToYearMonth(month) == 0
+        }
     }
+
+//    FIXME: Needed to Abstract away YearMonth from LocalDate
+//    internal fun getAdapterPosition(date: LocalDate): Int {
+//        return getAdapterPosition(CalendarDay(date, DayOwner.THIS_MONTH))
+//    }
 
     internal fun getAdapterPosition(day: CalendarDay): Int {
         return if (monthConfig.hasBoundaries) {
-            val firstMonthIndex = getAdapterPosition(day.positionYearMonth)
+            val firstMonthIndex = getAdapterPosition(day.positionYearMonth.value)
             if (firstMonthIndex == NO_INDEX) return NO_INDEX
 
             val firstCalMonth = months[firstMonthIndex]

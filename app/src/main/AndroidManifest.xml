@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Calendar">
 
-        <activity android:name=".MainActivity">
+        <activity android:name=".MainActivity" android:theme="@style/Theme.Calendar.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

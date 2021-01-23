@@ -69,17 +69,16 @@ enum class DayOfWeek {
             return ENUMS[dayOfWeek - 1]
         }
 
-        fun weekDays(firstDayOfWeek: DayOfWeek = SUNDAY): List<DayOfWeek> {
-            var startDayOfWeek = of(firstDayOfWeek.getValue())
-            val endDayOfWeek = of(firstDayOfWeek.minus(1).getValue())
-
-            val enums = arrayListOf<DayOfWeek>()
-            while (startDayOfWeek != endDayOfWeek) {
-                enums.add(startDayOfWeek)
-                startDayOfWeek = startDayOfWeek.plus(1)
+        fun weekDays(firstDayOfWeek: DayOfWeek = SUNDAY): Array<DayOfWeek> {
+            var daysOfWeek = ENUMS.copyOf()
+            // Order `daysOfWeek` array so that firstDayOfWeek is at index 0.
+            // Only necessary if firstDayOfWeek != DayOfWeek.MONDAY which has ordinal 0.
+            if (firstDayOfWeek != MONDAY) {
+                val rhs = daysOfWeek.sliceArray(firstDayOfWeek.ordinal..daysOfWeek.indices.last)
+                val lhs = daysOfWeek.sliceArray(0 until firstDayOfWeek.ordinal)
+                daysOfWeek = rhs + lhs
             }
-            enums.add(endDayOfWeek)
-            return enums
+            return daysOfWeek
         }
     }
 
@@ -92,9 +91,9 @@ enum class DayOfWeek {
      *
      * @return the day-of-week, from 1 (Monday) to 7 (Sunday)
      */
-    open fun getValue(): Int {
-        return ordinal + 1
-    }
+    val value: Int
+        get() = ordinal + 1
+
 
     /**
      * Returns the day-of-week that is the specified number of days after this one.
@@ -128,7 +127,7 @@ enum class DayOfWeek {
      * @return the resulting day-of-week, not null
      */
     open operator fun plus(days: DayOfWeek): DayOfWeek {
-        val amount = days.getValue() % 7
+        val amount = days.value % 7
         return ENUMS[(ordinal + (amount + 7)) % 7]
     }
 
@@ -163,6 +162,10 @@ enum class DayOfWeek {
      * @return the resulting day-of-week, not null
      */
     open operator fun minus(days: DayOfWeek): DayOfWeek {
-        return plus(-(days.getValue() % 7).toLong())
+        return plus(-(days.value % 7).toLong())
+    }
+
+    fun name(type: ILocalDate.Type = ILocalDate.Type.BS): String {
+        return Formatter.weekDayName(this, type, false)
     }
 }

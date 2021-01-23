@@ -115,9 +115,8 @@ enum class Month {
      *
      * @return the month-of-year, from 1 (January) to 12 (December)
      */
-    open fun getValue(): Int {
-        return ordinal + 1
-    }
+    val value: Int
+        get() = ordinal + 1
 
 
     /**
@@ -133,9 +132,13 @@ enum class Month {
      * @param months  the months to add, positive or negative
      * @return the resulting month, not null
      */
-    open operator fun plus(months: Long): Month {
-        val amount = (months % 12).toInt()
+    open operator fun plus(months: Int): Month {
+        val amount = (months % 12)
         return ENUMS[(ordinal + (amount + 12)) % 12]
+    }
+
+    open operator fun plus(months: Month): Month {
+        return ENUMS[(ordinal + (months.value + 12)) % 12]
     }
 
     /**
@@ -151,7 +154,11 @@ enum class Month {
      * @param months  the months to subtract, positive or negative
      * @return the resulting month, not null
      */
-    open operator fun minus(months: Long): Month {
+    open operator fun minus(months: Int): Month {
         return plus(-(months % 12))
+    }
+
+    open operator fun minus(months: Month): Month {
+        return plus(-months.value)
     }
 }

@@ -3,9 +3,15 @@ package com.maddy.calendar.core
 import java.util.*
 
 /**
+ * Constructor, previously validated.
+ *
+ * @param year  the year to represent, from MIN_YEAR to MAX_YEAR
+ * @param month  the month-of-year to represent, not null
+ * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
+ *
  * Created by Madhusudan Sapkota on 8/12/20.
  */
-abstract class ILocalDate {
+abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMonth: Int) {
 
     enum class Type {
         AD, BS
@@ -14,54 +20,64 @@ abstract class ILocalDate {
     /**
      * The year.
      */
-    var year: Int
+    var year: Int = year
         protected set
 
     /**
      * The month-of-year.
      */
-    var month: Month
-        protected set
+    var month: Month = month
+        private set
+
 
     /**
      * The day-of-month.
      */
-    var day: Int
-        protected set
+    private var day: Int = dayOfMonth
 
+    /**
+     * The type of calendar.
+     */
     abstract val type: Type
-    protected abstract fun referenceDate(): ILocalDate
-    protected abstract fun monthDays(): IntArray
-    protected abstract fun maxYear(): Int
-    protected abstract fun minYear(): Int
 
-    protected fun isLeapYear(year: Int): Boolean {
-        return if (type == Type.BS) {
-            false
-        } else {
-            if (year % 4 == 0) {
-                if (year % 100 == 0) {
-                    // Century Year must be divisible by 400 for Leap year
-                    year % 400 == 0
-                } else true
-            } else false
-        }
 
-    }
+    /**
+     * Gets the day-of-month field.
+     *
+     *
+     * This method returns the primitive `int` value for the day-of-month.
+     *
+     * @return the day-of-month, from 1 to 31
+     */
+    val dayOfMonth: Int
+        get() = day
 
-    protected fun getDaysSinceReferenceDate(): Long {
-        return daysDifference(this.referenceDate(), this)
-    }
+    /**
+     * Gets the day-of-year field.
+     *
+     *
+     * This method returns the primitive `int` value for the day-of-year.
+     *
+     * @return the day-of-year, from 1 to 365, or 366 in a leap year
+     */
+    val dayOfYear: Int
+        get() = firstDayOfYear() + day - 1
 
-    private fun lengthOfYear(year: Int): Int {
-        val leap = if (isLeapYear(year)) 1 else 0
-        return monthDays().sum() + leap
-    }
 
-    private fun lengthOfMonth(year: Int, month: Month): Int {
-        return if (isLeapYear(year) && month == Month.FEBRUARY_JESTHA) 29
-        else monthDays()[month.getValue() - 1]
-    }
+    /**
+     * Gets the month-of-year field from 1 to 12.
+     *
+     *
+     * This method returns the month as an `int` from 1 to 12.
+     * Application code is frequently clearer if the enum [Month]
+     * is used by calling [.getMonth].
+     *
+     * @return the month-of-year, from 1 to 12
+     * @see .getMonth
+     */
+    val monthValue: Int
+        get() = month.value
+
 
     /**
      * Returns the length of the year.
@@ -70,9 +86,9 @@ abstract class ILocalDate {
      *
      * @return 366 if the year is leap, 365 otherwise
      */
-    fun lengthOfYear(): Int {
-        return lengthOfYear(year)
-    }
+    val lengthOfYear: Int
+        get() = lengthOfYear(year, this.type)
+
 
     /**
      * Returns the length of the month, taking account of the year.
@@ -82,9 +98,9 @@ abstract class ILocalDate {
      *
      * @return the length of the month in days, from 28 to 31
      */
-    fun lengthOfMonth(): Int {
-        return lengthOfMonth(this.year, this.month)
-    }
+    val lengthOfMonth: Int
+        get() = lengthOfMonth(this.year, this.month, this.type)
+
 
     /**
      * Returns the day of week, taking account of the weekOfMonth.
@@ -94,20 +110,19 @@ abstract class ILocalDate {
      *
      * @return the length of the month in days, from 0 to 6
      */
-    fun dayOfWeek(): DayOfWeek {
-        val firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY
-        val daysSinceReferenceDate = this.getDaysSinceReferenceDate()
+    val dayOfWeek: DayOfWeek
+        get() {
+            val firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY
+            val daysSinceReferenceDate = this.daysSinceReferenceDate
 
-        val weekOfMonthValue = firstDayOfWeek.getValue() - 1
-        val dayOfWeek = (if (daysSinceReferenceDate > 0) {
-            ((daysSinceReferenceDate % 7) + weekOfMonthValue) % 7
-        } else {
-            (((7 - ((daysSinceReferenceDate * -1) % 7)) % 7) + weekOfMonthValue) % 7
-        }).toInt()
-        return DayOfWeek.of(dayOfWeek + 1)
-    }
-
-    abstract fun firstDayOfYear(): Int
+            val weekOfMonthValue = firstDayOfWeek.value - 1
+            val dayOfWeek = (if (daysSinceReferenceDate > 0) {
+                ((daysSinceReferenceDate % 7) + weekOfMonthValue) % 7
+            } else {
+                (((7 - ((daysSinceReferenceDate * -1) % 7)) % 7) + weekOfMonthValue) % 7
+            }).toInt()
+            return DayOfWeek.of(dayOfWeek + 1)
+        }
 
     /**
      * Returns the start week of month, taking account of the weekOfMonth.
@@ -117,12 +132,28 @@ abstract class ILocalDate {
      *
      * @return the starting day of month
      */
-    fun startDayOfWeek(): DayOfWeek =
-        this.atStartOfMonth().dayOfWeek()
+    fun startDayOfWeek(): DayOfWeek {
+        return this.atStartOfMonth().dayOfWeek
+    }
 
-    fun isCurrentMonth(): Boolean {
-        val month = if (type == Type.AD) nowAD().month else nowBS().month
-        return this.month == month
+    fun setDates(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+        val copy = this.copy()
+        copy.year = checkValidYear(year)
+        copy.month = checkValidMonth(month)
+        copy.day = 1
+        val lengthOfMonth = copy.lengthOfMonth
+
+        if (dayOfMonth in 1..lengthOfMonth) {
+            copy.day = dayOfMonth
+        }
+        return copy
+    }
+
+    fun atDay(dayOfMonth: Int): ILocalDate {
+        if (dayOfMonth < 1 || dayOfMonth > lengthOfMonth) {
+            throw RuntimeException("Invalid value for DayOfMonth: $dayOfMonth")
+        }
+        return instance(year, month, dayOfMonth)
     }
 
     fun plusDays(daysToAdd: Long): ILocalDate {
@@ -139,7 +170,7 @@ abstract class ILocalDate {
             }
 
             if (dom <= 59L) {
-                monthLen = lengthOfMonth().toLong()
+                monthLen = lengthOfMonth.toLong()
                 if (dom <= monthLen) {
                     return instance(this.year, this.month, dom.toInt())
                 }
@@ -174,47 +205,23 @@ abstract class ILocalDate {
         }
     }
 
-    fun addSingleDay() {
-        this.day++
-        if (this.day > this.lengthOfMonth()) {
-            this.day = 1
-            val newMonth = this.month.plus(1)
-            if (newMonth == Month.JANUARY_BAISHAK) {
-                this.year++
-            }
-            this.month = newMonth
-        }
-    }
-
-    fun subtractSingleDay() {
-        this.day--
-        if (this.day < 1) {
-            val newMonth = this.month.minus(1)
-            if (newMonth == Month.DECEMBER_CHAITRA) {
-                this.year--
-            }
-            this.month = newMonth
-            this.day = this.lengthOfMonth()
-        }
-    }
-
     fun plusMonths(monthsToAdd: Long): ILocalDate {
         if (monthsToAdd == 0L) {
             return this
         }
         val isNegative = monthsToAdd < 0
-        val monthCount = year * 12L + (month.getValue() - 1 /* TODO: Need to check this value */)
+        val monthCount = year * 12L + (monthValue - 1)
         val calcMonths: Long = monthCount + monthsToAdd // safe overflow
 
         val newYear = checkValidYear(
-            Helper.floorDiv(
+            Math.floorDiv(
                 calcMonths,
                 12.toLong()
             )
         )
-        var newMonth = Helper.floorMod(calcMonths, 12).toInt() + 1
+        var newMonth = Math.floorMod(calcMonths, 12).toInt() + 1
 
-        val newMaxDays = lengthOfMonth(newYear, checkValidMonth(newMonth))
+        val newMaxDays = lengthOfMonth(newYear, checkValidMonth(newMonth), this.type)
         var newDay = this.day
 
         if (this.day > newMaxDays) {
@@ -230,114 +237,192 @@ abstract class ILocalDate {
         }
 
         val newYear = checkValidYear(year + yearsToAdd.toInt())
-        val newDay = this.day.coerceAtMost(lengthOfMonth(newYear, this.month))
+        val newDay = this.day.coerceAtMost(lengthOfMonth(newYear, this.month, this.type))
 
         return instance(newYear, month, newDay)
     }
 
-    fun setDates(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
-        val copy = this.copy()
-        copy.year = checkValidYear(year)
-        copy.month = checkValidMonth(month)
-        copy.day = 1
-        val lengthOfMonth = copy.lengthOfMonth()
-
-        if (dayOfMonth in 1..lengthOfMonth) {
-            copy.day = dayOfMonth
+    private fun addSingleDay() {
+        this.day++
+        if (this.day > this.lengthOfMonth) {
+            this.day = 1
+            val newMonth = this.month.plus(1)
+            if (newMonth == Month.JANUARY_BAISHAK) {
+                this.year++
+            }
+            this.month = newMonth
         }
-        return copy
     }
 
-    /**
-     * Constructor, previously validated.
-     *
-     * @param year  the year to represent, from MIN_YEAR to MAX_YEAR
-     * @param month  the month-of-year to represent, not null
-     * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
-     */
-    private constructor(year: Int, month: Month, dayOfMonth: Int) {
-        this.year = year
-        this.month = month
-        this.day = dayOfMonth
-    }
-
-    private fun checkValidYear(year: Int): Int {
-        return year
-    }
-
-    private fun checkValidMonth(month: Int): Month {
-        return if (month < Month.JANUARY_BAISHAK.getValue() || month > Month.DECEMBER_CHAITRA.getValue()) Month.JANUARY_BAISHAK
-        else Month.of(month)
+    private fun subtractSingleDay() {
+        this.day--
+        if (this.day < 1) {
+            val newMonth = this.month.minus(1)
+            if (newMonth == Month.DECEMBER_CHAITRA) {
+                this.year--
+            }
+            this.month = newMonth
+            this.day = this.lengthOfMonth
+        }
     }
 
     fun reverse(): ILocalDate {
         return convert(this, if (this.type == Type.BS) Type.AD else Type.BS)
     }
 
-    fun AD(): ILocalDate {
-        if (this.type == Type.AD) return this
-
-        return convert(this, Type.AD)
-    }
-
-    fun BS(): ILocalDate {
-        if (this.type == Type.BS) return this
-
-        return convert(this, Type.BS)
-    }
-
-    private fun instance(year: Int, month: Month, dayOfMonth: Int): ILocalDate {
-        return if (this.type == Type.AD) ADLocalDate(year, month, dayOfMonth)
-        else BSLocalDate(year, month, dayOfMonth)
-    }
-
-    fun copy(): ILocalDate {
-        return instance(year, month, day)
-    }
-
-    fun before(from: ILocalDate): Boolean {
-        return year < from.year ||
-                year <= from.year &&
-                (month < from.month ||
-                        (month <= from.month && day < from.day))
-    }
-
-    fun after(baseCalendar: ILocalDate): Boolean {
-        return year > baseCalendar.year ||
-                year >= baseCalendar.year &&
-                (month > baseCalendar.month ||
-                        month >= baseCalendar.month &&
-                        (day > baseCalendar.day))
-    }
-
-    fun weeks(): Int = countWeek(this)
-
-    fun previousMonthWeeks(): Int = countWeek(instance(this.year, this.month - 1, 1))
-
-    fun nextMonthWeeks(): Int = countWeek(instance(this.year, this.month + 1, 1))
-
     fun atStartOfMonth(): ILocalDate = instance(year, month, 1)
 
-    fun atStartOfYear(): ILocalDate = instance(year, Month.of(1), 1)
+    fun atStartOfYear(): ILocalDate = instance(year, Month.JANUARY_BAISHAK, 1)
 
-    fun atEndOfMonth(): ILocalDate = instance(year, month, lengthOfMonth())
+    fun atEndOfMonth(): ILocalDate = instance(year, month, lengthOfMonth)
 
+    /**
+     * Checks if this date is before the specified date.
+     * <p>
+     * This checks to see if this date represents a point on the
+     * local time-line before the other date.
+     * <pre>
+     *   val a = ILocalDate.ofBS(2077, 6, 20)
+     *   val b = ILocalDate.ofBS(2077, 7, 1)
+     *   a.before(b) == true
+     *   a.before(a) == false
+     *   b.before(a) == false
+     * </pre>
+     * <p>
+     * This method only considers the position of the two dates on the local time-line.
+     * It does not take into account the chronology, or calendar system.
+     * This is different from the comparison in {@link #compareTo(ChronoLocalDate)},
+     * but is the same approach as {@link ChronoLocalDate#timeLineOrder()}.
+     *
+     * @param other  the other date to compare to, not null
+     * @return true if this date is before the specified date
+     */
+    fun before(other: ILocalDate): Boolean {
+        return year < other.year ||
+                year <= other.year &&
+                (month < other.month ||
+                        (month <= other.month && day < other.day))
+    }
+
+    /**
+     * Checks if this date is after the specified date.
+     * <p>
+     * This checks to see if this date represents a point on the
+     * local time-line after the other date.
+     * <pre>
+     *   val a = ILocalDate.ofBS(2077, 6, 20)
+     *   val b = ILocalDate.ofBS(2077, 7, 1)
+     *   a.after(b) == false
+     *   a.after(a) == false
+     *   b.after(a) == true
+     * </pre>
+     * <p>
+     *
+     * @param other  the other date to compare to, not null
+     * @return true if this date is after the specified date
+     */
+    fun after(other: ILocalDate): Boolean {
+        return year > other.year ||
+                year >= other.year &&
+                (month > other.month ||
+                        month >= other.month &&
+                        (day > other.day))
+    }
+
+    /**
+     * Compares this date to another date.
+     * <p>
+     * The comparison is primarily based on the date, from earliest to latest.
+     * It is "consistent with equals", as defined by {@link Comparable}.
+     * <p>
+     * If all the dates being compared are instances of {@code ILocalDate},
+     * then the comparison will be entirely based on the date.
+     *
+     * @param other  the other date to compare to, not null
+     * @return the comparator value, negative if less, positive if greater
+     */
     operator fun compareTo(other: ILocalDate): Int {
-        var cmp = if (type == other.type) 0 else 1
+        var cmp = if (this.type == other.type) 0 else compareTo(other.reverse())
         if (cmp == 0) {
-            (year - other.year)
+            cmp = year - other.year
             if (cmp == 0) {
-                cmp = (month.getValue() - other.month.getValue())
+                cmp = monthValue - other.monthValue
                 if (cmp == 0) {
-                    cmp = (day - other.day)
+                    cmp = day - other.day
                 }
             }
         }
         return cmp
     }
 
+    /**
+     * Checks if this date is equal to another date.
+     * <p>
+     * Compares this {@code ILocalDate} with another ensuring that the date is the same.
+     * <p>
+     * Only objects of type {@code ILocalDate} are compared, other types return false.
+     *
+     * @param other  the object to check, null returns false
+     * @return true if this is equal to the other date
+     */
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+
+        if (other is ILocalDate) {
+            return compareTo(other) == 0
+        }
+        return false
+    }
+
+    /**
+     * A hash code for this date.
+     *
+     * @return a suitable hash code
+     */
+    override fun hashCode(): Int {
+        val yearValue = year
+        val monthValue = monthValue
+        val dayValue = day
+        return yearValue and -0x800 xor (yearValue shl 11) + (monthValue shl 6) + dayValue
+    }
+
+    fun copy(): ILocalDate {
+        return instance(year, month, day)
+    }
+
+    /**
+     * Outputs this date as a {@code String}, such as {@code 2007-12-03 (BS)}.
+     * <p>
+     * The output will be in the ISO-8601 format {@code uuuu-MM-dd}.
+     *
+     * @return a string representation of this date, not null
+     */
     override fun toString(): String {
-        return "ILocalDate { \"year\": $year, \"month\": $month, \"dayOfMonth\": $day, \"type\": $type  }"
+        return "$year-$month-$day ($type)"
+    }
+
+    protected abstract fun maxYear(): Int
+    protected abstract fun minYear(): Int
+    protected abstract fun firstDayOfYear(): Int
+    protected abstract fun referenceDate(): ILocalDate
+
+    private val daysSinceReferenceDate: Long
+        get() = Period.daysBetween(this.referenceDate(), this)
+
+    private fun checkValidYear(year: Int): Int {
+        return year
+    }
+
+    private fun checkValidMonth(month: Int): Month {
+        return if (month < Month.JANUARY_BAISHAK.value || month > Month.DECEMBER_CHAITRA.value) Month.JANUARY_BAISHAK
+        else Month.of(month)
+    }
+
+    private fun instance(year: Int, month: Month, dayOfMonth: Int): ILocalDate {
+        return if (this.type == Type.AD) ADLocalDate(year, month, dayOfMonth)
+        else BSLocalDate(year, month, dayOfMonth)
     }
 
     companion object {
@@ -350,16 +435,28 @@ abstract class ILocalDate {
             return ADLocalDate.now()
         }
 
-        fun of(year: Int, month: Int, dayOfMonth: Int, type: Type = Type.BS): ILocalDate {
+        /**
+         * Obtains an instance of {@code ILocalDate} from a year, month and day.
+         * <p>
+         * This returns a {@code ILocalDate} with the specified year, month and day-of-month.
+         * The day must be valid for the year and month, otherwise an exception will be thrown.
+         *
+         * @param year  the year to represent, from MIN_YEAR to MAX_YEAR
+         * @param month  the month-of-year to represent, from 1 (January) to 12 (December)
+         * @param dayOfMonth  the day-of-month to represent, from 1 to 31
+         * @param type the type of calendar to represent by AD or BS
+         * @return the local date, not null
+         */
+        fun of(year: Int, month: Int = 1, dayOfMonth: Int = 1, type: Type = Type.BS): ILocalDate {
             return if (type == Type.BS) ofBS(year, month, dayOfMonth)
             else ofAD(year, month, dayOfMonth)
         }
 
-        fun ofBS(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+        fun ofBS(year: Int, month: Int = 1, dayOfMonth: Int = 1): ILocalDate {
             return BSLocalDate(year, Month.of(month), dayOfMonth)
         }
 
-        fun ofAD(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+        fun ofAD(year: Int, month: Int = 1, dayOfMonth: Int = 1): ILocalDate {
             return ADLocalDate(year, Month.of(month), dayOfMonth)
         }
 
@@ -371,68 +468,87 @@ abstract class ILocalDate {
             } else {
                 BSLocalDate.REFERENCE_DATE
             }
-            val daysToAdd = date.getDaysSinceReferenceDate()
+            val daysToAdd = date.daysSinceReferenceDate
             return iLocalDate.plusDays(daysToAdd)
         }
 
-        fun daysDifference(from: ILocalDate, to: ILocalDate): Long {
-            val toS = if (from.type != to.type) {
-                to.reverse()
-            } else to.copy()
-
-            var fromDate: ILocalDate
-            val toDate: ILocalDate
-
-            val isNegative = if (from.before(toS)) {
-                fromDate = from.copy()
-                toDate = toS
-                1
+        internal fun isLeapYear(year: Int, type: Type): Boolean {
+            return if (type == Type.BS) {
+                false
             } else {
-                fromDate = toS
-                toDate = from.copy()
-                -1
+                if (year % 4 == 0) {
+                    if (year % 100 == 0) {
+                        // Century Year must be divisible by 400 for Leap year
+                        year % 400 == 0
+                    } else true
+                } else false
             }
+
+        }
+
+        fun monthDaysBS(year: Int): IntArray {
+            return BSLocalDate.monthDays(year)
+        }
+
+        fun monthDaysAD(): IntArray {
+            return ADLocalDate.monthDays
+        }
+
+        internal fun lengthOfYear(year: Int, type: Type): Int {
+            val leap = if (isLeapYear(year, type)) 1 else 0
+            val monthDays = if (type == Type.BS) monthDaysBS(year) else monthDaysAD()
+            return monthDays.sum() + leap
+        }
+
+        internal fun lengthOfMonth(year: Int, month: Month, type: Type): Int {
+            return if (isLeapYear(year, type) && month == Month.FEBRUARY_JESTHA) {
+                29
+            } else {
+                val monthDays = if (type == Type.BS) monthDaysBS(year) else monthDaysAD()
+                monthDays[month.value - 1]
+            }
+        }
+
+        @Deprecated("Do not use")
+        fun daysDifference(from: ILocalDate, to: ILocalDate): Long {
+            val (isNegative, startEnd) = Period.startEndType(from, to)
+            val (fromDate, toDate) = startEnd
 
             var daysCount = 0L
             while (fromDate.before(toDate)) {
-                fromDate = fromDate.plusDays(1)
+                fromDate.addSingleDay()
                 daysCount++
             }
 
             return daysCount * isNegative
         }
 
-        /**
-         * Returns the count of week, taking account of the weekOfMonth.
-         * <p>
-         * This returns the total number of week of current month.
-         *
-         * @return the length of the month in days, from 4 to 5
-         */
+        @Deprecated("Do not use")
         fun countWeek(date: ILocalDate, firstDayOfWeek: DayOfWeek = DayOfWeek.SUNDAY): Int {
-            var startDayDate = date.atStartOfMonth()
-            var weekCount = if (startDayDate.dayOfWeek() == firstDayOfWeek) 0 else 1
+            val startDayDate = date.atStartOfMonth()
+            var weekCount = if (startDayDate.dayOfWeek == firstDayOfWeek) 0 else 1
             val currentMonth = startDayDate.month
             val nextMonth = if (currentMonth == Month.DECEMBER_CHAITRA) 1 else currentMonth + 1
 
             while (true) {
                 if (startDayDate.month == nextMonth) break
-                if (startDayDate.dayOfWeek() == firstDayOfWeek) weekCount++
-                startDayDate = startDayDate.plusDays(1)
+                if (startDayDate.dayOfWeek == firstDayOfWeek) weekCount++
+                startDayDate.addSingleDay()
             }
             return weekCount
         }
 
+        @Deprecated("Do not use")
         fun weekOfMonth(date: ILocalDate, firstDayOfWeek: DayOfWeek): Int {
-            var startDayDate = date.atStartOfMonth()
-            var weekCount = if (startDayDate.dayOfWeek() == firstDayOfWeek) 0 else 1
+            val startDayDate = date.atStartOfMonth()
+            var weekCount = if (startDayDate.dayOfWeek == firstDayOfWeek) 0 else 1
             val currentMonth = startDayDate.month
             val nextMonth = if (currentMonth == Month.DECEMBER_CHAITRA) 1 else currentMonth + 1
 
             while (true) {
                 if (startDayDate.month == nextMonth) break
 
-                val dayOfWeek = startDayDate.dayOfWeek()
+                val dayOfWeek = startDayDate.dayOfWeek
                 if (dayOfWeek == firstDayOfWeek) weekCount++
 
                 if (startDayDate.year == date.year
@@ -441,7 +557,7 @@ abstract class ILocalDate {
                     && startDayDate.type == date.type
                 ) return weekCount
 
-                startDayDate = startDayDate.plusDays(1)
+                startDayDate.addSingleDay()
             }
             return weekCount
         }
@@ -455,113 +571,9 @@ abstract class ILocalDate {
      * @param month  the month-of-year to represent, not null
      * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
      */
-    private class BSLocalDate : ILocalDate {
-
-        val yearMonthSpanLookupTable = arrayOf(
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
-            intArrayOf(31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 31, 32, 32, 30, 31, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 30, 30, 30),
-            intArrayOf(30, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
-            intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
-            intArrayOf(31, 31, 32, 31, 31, 31, 29, 30, 29, 30, 29, 31),
-            intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 29, 30, 30, 31)
-        )
-
-        override fun monthDays(): IntArray = yearMonthSpanLookupTable[yearIndex()]
+    private class BSLocalDate
+    constructor(year: Int, month: Month, dayOfMonth: Int) :
+        ILocalDate(year, month, dayOfMonth) {
 
         override fun referenceDate() = REFERENCE_DATE
 
@@ -574,7 +586,7 @@ abstract class ILocalDate {
         }
 
         private fun daysSum(month: Month): Int {
-            val monthDays = monthDays()
+            val monthDays = monthDays(this.year)
             return when (month) {
                 Month.JANUARY_BAISHAK -> 1
                 Month.FEBRUARY_JESTHA,
@@ -587,26 +599,129 @@ abstract class ILocalDate {
                 Month.SEPTEMBER_PAUSH,
                 Month.OCTOBER_MAGH,
                 Month.NOVEMBER_FALGUN,
-                Month.DECEMBER_CHAITRA -> daysSum(month - 1) + monthDays[month.getValue() - 2]
-                else -> daysSum(Month.DECEMBER_CHAITRA) + monthDays[Month.DECEMBER_CHAITRA.getValue() - 1]
+                Month.DECEMBER_CHAITRA -> daysSum(month - 1) + monthDays[month.value - 2]
             }
         }
 
         override val type: Type
             get() = Type.BS
 
-        constructor(year: Int, month: Month, dayOfMonth: Int) : super(year, month, dayOfMonth)
-
         companion object {
+            val yearMonthSpanLookupTable = arrayOf(
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30),
+                intArrayOf(31, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 32, 31, 32, 30, 31, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 31, 32, 32, 30, 31, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 31, 32, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 30, 30, 30, 30),
+                intArrayOf(30, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30),
+                intArrayOf(31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 30, 30),
+                intArrayOf(31, 31, 32, 31, 31, 31, 29, 30, 29, 30, 29, 31),
+                intArrayOf(31, 31, 32, 31, 31, 31, 30, 29, 29, 30, 30, 31)
+            )
+
             val REFERENCE_DATE = BSLocalDate(2059, Month.JANUARY_BAISHAK, 1)
             fun now(): ILocalDate {
                 return ADLocalDate.now().reverse()
             }
-        }
 
-        private fun yearIndex(): Int {
-            val index = (this.year - 1999) % 100
-            return if (index < 0) index * -1 else index
+            fun monthDays(year: Int): IntArray = yearMonthSpanLookupTable[yearIndex(year)]
+
+            fun yearIndex(year: Int): Int {
+                val index = (year - 1999) % 100
+                return if (index < 0) index * -1 else index
+            }
         }
     }
 
@@ -617,18 +732,17 @@ abstract class ILocalDate {
      * @param month  the month-of-year to represent, not null
      * @param dayOfMonth  the day-of-month to represent, valid for year-month, from 1 to 31
      */
-    private class ADLocalDate : ILocalDate {
+    private class ADLocalDate(year: Int, month: Month, dayOfMonth: Int) :
+        ILocalDate(year, month, dayOfMonth) {
 
         override fun minYear() = -999999999
 
         override fun maxYear() = 999999999
 
-        override fun monthDays() = intArrayOf(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
-
         override fun referenceDate() = REFERENCE_DATE
 
         override fun firstDayOfYear(): Int {
-            val leap = if (isLeapYear(this.year)) 1 else 0
+            val leap = if (isLeapYear(this.year, this.type)) 1 else 0
             return when (this.month) {
                 Month.JANUARY_BAISHAK -> 1
                 Month.FEBRUARY_JESTHA -> 32
@@ -649,8 +763,6 @@ abstract class ILocalDate {
         override val type: Type
             get() = Type.AD
 
-        constructor(year: Int, month: Month, dayOfMonth: Int) : super(year, month, dayOfMonth)
-
         companion object {
             val REFERENCE_DATE = ADLocalDate(2002, Month.of(4), 14)
             fun now(): ILocalDate {
@@ -661,6 +773,8 @@ abstract class ILocalDate {
                     now.get(Calendar.DAY_OF_MONTH)
                 )
             }
+
+            val monthDays = intArrayOf(31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31)
         }
     }
 }

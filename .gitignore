@@ -204,6 +204,8 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 
+ui-compose
+
 ### AndroidStudio Patch ###
 
 !/gradle/wrapper/gradle-wrapper.jar

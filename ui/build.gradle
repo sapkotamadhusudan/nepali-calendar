@@ -1,8 +1,75 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'com.jfrog.bintray' version "1.8.1"
+    id 'maven-publish'
+}
 
-group='com.maddy.calendar.ui'
-def artifact = 'CalendarView'
+def getVersionName = { ->
+    return "0.0.1"
+}
+
+def getDescription = { ->
+    return "A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali."
+}
+
+def getVCSUrl = { ->
+    return "https://github.com/sapkotamadhusudan/nepali-calendar"
+}
+
+def getLicense = { ->
+    return ["MIT"]
+}
+
+def getArtifactId = { ->
+    return "ui"
+}
+
+def getGroupId = { ->
+    return "com.maddy.calendar"
+}
+
+def getPackageName = {->
+    return getGroupId() + ":" + getArtifactId()
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId getGroupId()
+                artifactId getArtifactId()
+                version getVersionName()
+                // Place the path of your artifact here
+                artifact("$buildDir/libs/${getArtifactId()}.jar")
+            }
+        }
+    }
+}
+
+// Bintray config
+Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+bintray {
+    user = properties.getProperty("bintray.user")
+    key = properties.getProperty("bintray.apikey")
+    publications = ["release"]
+    pkg {
+        repo = "nepali-calendar"
+        name = getPackageName()
+        desc = getDescription()
+        licenses = getLicense()
+        vcsUrl = getVCSUrl()
+        version {
+            name = getVersionName()
+            vcsTag = getVersionName()
+            released = new Date()
+        }
+    }
+}
 
 android {
     compileSdkVersion 30
@@ -27,7 +94,7 @@ android {
     }
     kotlinOptions {
         jvmTarget = "1.8"
-        freeCompilerArgs += ['-module-name', "$group.$artifact"]
+        freeCompilerArgs += ['-module-name', "${getGroupId()}.${getArtifactId()}"]
     }
 }
 

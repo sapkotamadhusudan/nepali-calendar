@@ -8,15 +8,17 @@ import java.io.Serializable
 data class CalendarDay internal constructor(val date: LocalDate, val owner: DayOwner) :
     Comparable<CalendarDay>, Serializable {
 
-    val day = date.day
+    val day = date.dayOfMonth
 
     // Find the actual month on the calendar that owns this date.
-    internal val positionYearMonth: YearMonth
-        get() = when (owner) {
+    internal val positionYearMonth: Lazy<YearMonth> = lazy {
+        when (owner) {
             DayOwner.THIS_MONTH -> date.yearMonth
             DayOwner.PREVIOUS_MONTH -> date.previous
             DayOwner.NEXT_MONTH -> date.next
         }
+    }
+
 
     override fun toString(): String {
         return "CalendarDay { date =  $date, owner = $owner}"

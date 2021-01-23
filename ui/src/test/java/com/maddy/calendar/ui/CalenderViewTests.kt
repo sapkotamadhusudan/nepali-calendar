@@ -61,7 +61,7 @@ class CalenderViewTests {
         val weekDays =
             MonthConfig.generateWeekDays(magh2077, firstDayOfWeek, true, OutDateStyle.END_OF_ROW)
 
-        val validOutDateIndices = weekDays.flatten().indices.toList().takeLast(2)
+        val validOutDateIndices = weekDays.flatten().indices.toList().takeLast(1)
         val outDatesInMonth =
             weekDays.flatten().filterIndexed { index, _ -> validOutDateIndices.contains(index) }
 
@@ -94,7 +94,7 @@ class CalenderViewTests {
         val weekDays =
             MonthConfig.generateWeekDays(magh2077, firstDayOfWeek, true, OutDateStyle.END_OF_GRID)
 
-        assertTrue(weekDays.first().first().date.dayOfWeek() == firstDayOfWeek)
+        assertTrue(weekDays.first().first().date.dayOfWeek == firstDayOfWeek)
     }
 
     @Test
@@ -108,19 +108,19 @@ class CalenderViewTests {
         assertTrue(months.all { it.weekDays.count() <= maxRowCount })
 
         // With a bounded config, OutDateStyle of endOfRow and maxRowCount of 3,
-        // there should be two CalendarMonth instances for may2019, the first
+        // there should be two CalendarMonth instances for magh2077, the first
         // should have 3 weeks and the second should have 2 weeks.
-        val mayCalendarMonths = months.filter { it.yearMonth == magh2077 }
-        assertTrue(mayCalendarMonths.count() == 2)
+        val maghCalendarMonths = months.filter { it.yearMonth == magh2077 }
+        assertTrue(maghCalendarMonths.count() == 2)
 
-        assertTrue(mayCalendarMonths.first().weekDays.count() == 3)
-        assertTrue(mayCalendarMonths.last().weekDays.count() == 2)
+        assertTrue(maghCalendarMonths.first().weekDays.count() == 3)
+        assertTrue(maghCalendarMonths.last().weekDays.count() == 2)
 
-        assertTrue(mayCalendarMonths.first().indexInSameMonth == 0)
-        assertTrue(mayCalendarMonths.last().indexInSameMonth == 1)
+        assertTrue(maghCalendarMonths.first().indexInSameMonth == 0)
+        assertTrue(maghCalendarMonths.last().indexInSameMonth == 1)
 
-        assertTrue(mayCalendarMonths.first().numberOfSameMonth == 2)
-        assertTrue(mayCalendarMonths.last().numberOfSameMonth == 2)
+        assertTrue(maghCalendarMonths.first().numberOfSameMonth == 2)
+        assertTrue(maghCalendarMonths.last().numberOfSameMonth == 2)
     }
 
     @Test
@@ -143,8 +143,8 @@ class CalenderViewTests {
     fun `test unbounded month generation does not exceed number of days in each month`() {
         val maxRowCount = 6
         MonthConfig.generateUnboundedMonths(
-            ILocalDate.of(2019, 2, 1, ILocalDate.Type.BS),
-            ILocalDate.of(2021, 2, 1, ILocalDate.Type.BS),
+            ILocalDate.ofAD(2019, 2, 1),
+            ILocalDate.ofAD(2021, 2, 1),
             DayOfWeek.SUNDAY,
             maxRowCount,
             InDateStyle.ALL_MONTHS,
