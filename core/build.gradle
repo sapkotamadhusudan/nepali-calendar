@@ -6,7 +6,7 @@ plugins {
 }
 
 def getVersionName = { ->
-    return "0.0.4"
+    return "0.0.5"
 }
 
 def getDescription = { ->
@@ -40,25 +40,13 @@ def getGitHubUrl = { ->
 afterEvaluate {
     publishing {
         publications {
-            release(MavenPublication) {
-                from components.java
+            coreRelease(MavenPublication) {
 
                 groupId getGroupId()
                 artifactId getArtifactId()
                 version getVersionName()
                 // Place the path of your artifact here
                 artifact("$buildDir/libs/${getArtifactId()}.jar")
-            }
-        }
-        repositories {
-            maven {
-                name = "GitHubPackages"
-
-                url = uri(getGitHubUrl())
-                credentials {
-                    username = System.getenv("GITHUB_USER_NAME")
-                    password = System.getenv("GITHUB_TOKEN")
-                }
             }
         }
     }
@@ -71,7 +59,7 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
-    publications = ["release"]
+    publications = ["coreRelease"]
     pkg {
         repo = "nepali-calendar"
         name = getPackageName()
@@ -93,4 +81,7 @@ java {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+
+    testImplementation 'junit:junit:4.13.1'
+    testImplementation "com.google.truth:truth:1.1"
 }

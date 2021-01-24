@@ -55,17 +55,6 @@ object Period {
             count++
         }
         return count * isNegative
-//        var weekCount = if (startDayOfWeek == firstDayOfWeek) 0 else 1
-//        while (totalDays > 0) {
-//            if (startDayOfWeek == firstDayOfWeek) {
-//                weekCount++
-//            }
-//
-//
-//            startDayOfWeek = startDayOfWeek.plus(1)
-//            totalDays--
-//        }
-//        return weekCount * isNegative
     }
 
     fun monthsBetween(start: ILocalDate, end: ILocalDate): Int {
@@ -96,7 +85,7 @@ object Period {
 
         var dom: Long = 0
         for (year in (earlyDate.year + 1) until laterDate.year) {
-            dom += ILocalDate.lengthOfYear(year, earlyDate.type)
+            dom += ILocalDate.Utils.lengthOfYear(year, earlyDate.type)
         }
 
         dom += earlyDate.lengthOfYear - earlyDate.dayOfYear

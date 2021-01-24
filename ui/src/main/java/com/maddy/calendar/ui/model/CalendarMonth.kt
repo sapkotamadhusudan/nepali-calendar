@@ -44,6 +44,18 @@ data class CalendarMonth(
     }
 }
 
+/**
+ * Compares this date to another date.
+ * <p>
+ * The comparison is primarily based on the date, from earliest to latest.
+ * It is "consistent with equals", as defined by {@link Comparable}.
+ * <p>
+ * If all the dates being compared are instances of {@code ILocalDate},
+ * then the comparison will be entirely based on the date.
+ *
+ * @param other  the other date to compare to, not null
+ * @return the comparator value, negative if less, positive if greater
+ */
 fun YearMonth.compareToYearMonth(other: YearMonth): Int {
     var cmp = (year - other.year)
     if (cmp == 0) {

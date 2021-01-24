@@ -78,6 +78,9 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
     val monthValue: Int
         get() = month.value
 
+    val monthName: String
+        get() = Formatter.format(this, "MM")
+
 
     /**
      * Returns the length of the year.
@@ -87,7 +90,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
      * @return 366 if the year is leap, 365 otherwise
      */
     val lengthOfYear: Int
-        get() = lengthOfYear(year, this.type)
+        get() = Utils.lengthOfYear(year, this.type)
 
 
     /**
@@ -99,7 +102,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
      * @return the length of the month in days, from 28 to 31
      */
     val lengthOfMonth: Int
-        get() = lengthOfMonth(this.year, this.month, this.type)
+        get() = Utils.lengthOfMonth(this.year, this.month, this.type)
 
 
     /**
@@ -221,7 +224,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         )
         var newMonth = Math.floorMod(calcMonths, 12).toInt() + 1
 
-        val newMaxDays = lengthOfMonth(newYear, checkValidMonth(newMonth), this.type)
+        val newMaxDays = Utils.lengthOfMonth(newYear, checkValidMonth(newMonth), this.type)
         var newDay = this.day
 
         if (this.day > newMaxDays) {
@@ -237,7 +240,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         }
 
         val newYear = checkValidYear(year + yearsToAdd.toInt())
-        val newDay = this.day.coerceAtMost(lengthOfMonth(newYear, this.month, this.type))
+        val newDay = this.day.coerceAtMost(Utils.lengthOfMonth(newYear, this.month, this.type))
 
         return instance(newYear, month, newDay)
     }
@@ -435,6 +438,10 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
             return ADLocalDate.now()
         }
 
+        fun now(type: Type): ILocalDate {
+            return if (type == Type.AD) nowAD() else nowBS()
+        }
+
         /**
          * Obtains an instance of {@code ILocalDate} from a year, month and day.
          * <p>
@@ -472,7 +479,14 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
             return iLocalDate.plusDays(daysToAdd)
         }
 
-        internal fun isLeapYear(year: Int, type: Type): Boolean {
+        fun convertToBS(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
+            return of(year, month, dayOfMonth, Type.AD).reverse()
+        }
+    }
+
+    internal object Utils{
+
+        fun isLeapYear(year: Int, type: Type): Boolean {
             return if (type == Type.BS) {
                 false
             } else {
@@ -494,13 +508,13 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
             return ADLocalDate.monthDays
         }
 
-        internal fun lengthOfYear(year: Int, type: Type): Int {
+        fun lengthOfYear(year: Int, type: Type): Int {
             val leap = if (isLeapYear(year, type)) 1 else 0
             val monthDays = if (type == Type.BS) monthDaysBS(year) else monthDaysAD()
             return monthDays.sum() + leap
         }
 
-        internal fun lengthOfMonth(year: Int, month: Month, type: Type): Int {
+        fun lengthOfMonth(year: Int, month: Month, type: Type): Int {
             return if (isLeapYear(year, type) && month == Month.FEBRUARY_JESTHA) {
                 29
             } else {
@@ -742,7 +756,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         override fun referenceDate() = REFERENCE_DATE
 
         override fun firstDayOfYear(): Int {
-            val leap = if (isLeapYear(this.year, this.type)) 1 else 0
+            val leap = if (Utils.isLeapYear(this.year, this.type)) 1 else 0
             return when (this.month) {
                 Month.JANUARY_BAISHAK -> 1
                 Month.FEBRUARY_JESTHA -> 32
@@ -756,7 +770,6 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
                 Month.OCTOBER_MAGH -> 274 + leap
                 Month.NOVEMBER_FALGUN -> 305 + leap
                 Month.DECEMBER_CHAITRA -> 335 + leap
-                else -> 335 + leap
             }
         }
 

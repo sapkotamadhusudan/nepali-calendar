@@ -57,13 +57,18 @@ object Formatter {
     )
 
     private fun monthName(month: Month, type: ILocalDate.Type, short: Boolean = true): String {
-        return (if (type == ILocalDate.Type.BS) npMonths[month.value]
-        else bsMonths[month.value]?.apply { if (short) substring(0, 3) }) ?: ""
+        return (
+                if (type == ILocalDate.Type.BS) {
+                    npMonths[month.value]
+                } else {
+                    if (short) bsMonths[month.value]?.substring(0, 3)
+                    else bsMonths[month.value]
+                }) ?: ""
     }
 
     fun weekDayName(dayOfWeek: DayOfWeek, type: ILocalDate.Type, short: Boolean = true): String {
-        return ((if (type == ILocalDate.Type.BS) npWeekDays[dayOfWeek]
-        else dayOfWeek.name) ?: "").apply { if (short) substring(0, 3) }
+        val name = ((if (type == ILocalDate.Type.BS) npWeekDays[dayOfWeek] else dayOfWeek.name))
+        return (if (short) name?.substring(0, 3) else name) ?: ""
     }
 
     private fun getNpCharacter(number: Long, prefix: String = ""): String {

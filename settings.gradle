@@ -1,5 +1,5 @@
 rootProject.name = "Calendar"
-include ':app'
+include ':sample'
 
 include ':ui'
 include ':core'

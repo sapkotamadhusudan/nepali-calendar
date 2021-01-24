@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/example_5_page_bg_color"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    tools:context=".Example5Fragment">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/exFiveAppBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/example_5_toolbar_color"
+        android:theme="@style/Theme.Calendar.AppBarOverlay">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="14dp">
+
+            <ImageView
+                android:id="@+id/exFivePreviousMonthImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="22dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/example_5_text_grey"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_chevron_left"
+                android:layout_marginRight="22dp"
+                android:contentDescription="@string/previous_month_image" />
+
+            <TextView
+                android:id="@+id/exFiveMonthYearText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/example_5_text_grey"
+                android:textSize="22sp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/exFiveNextMonthImage"
+                app:layout_constraintStart_toEndOf="@id/exFivePreviousMonthImage"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:text="April 2018" />
+
+            <ImageView
+                android:id="@+id/exFiveNextMonthImage"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/example_5_text_grey"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_chevron_right"
+                android:contentDescription="@string/next_month_image" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.maddy.calendar.ui.CalendarView
+            android:id="@+id/exFiveCalendar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cv_dayViewResource="@layout/example_5_calendar_day"
+            app:cv_monthHeaderResource="@layout/example_5_calendar_header"
+            app:cv_orientation="horizontal"
+            app:cv_outDateStyle="endOfGrid"
+            app:cv_scrollMode="paged" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/exFiveRv"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false"
+            tools:targetApi="lollipop" />
+    </LinearLayout>
+
+
+</LinearLayout>

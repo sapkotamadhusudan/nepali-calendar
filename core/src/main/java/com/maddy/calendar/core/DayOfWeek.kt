@@ -165,7 +165,7 @@ enum class DayOfWeek {
         return plus(-(days.value % 7).toLong())
     }
 
-    fun name(type: ILocalDate.Type = ILocalDate.Type.BS): String {
-        return Formatter.weekDayName(this, type, false)
+    fun name(type: ILocalDate.Type = ILocalDate.Type.BS, short: Boolean = true): String {
+        return Formatter.weekDayName(this, type, short)
     }
 }

@@ -6,7 +6,7 @@ plugins {
 }
 
 def getVersionName = { ->
-    return "0.0.1"
+    return "0.0.5"
 }
 
 def getDescription = { ->
@@ -36,14 +36,14 @@ def getPackageName = {->
 afterEvaluate {
     publishing {
         publications {
-            release(MavenPublication) {
+            uiRelease(MavenPublication) {
                 from components.release
 
                 groupId getGroupId()
                 artifactId getArtifactId()
                 version getVersionName()
                 // Place the path of your artifact here
-                artifact("$buildDir/libs/${getArtifactId()}.jar")
+                artifact("$buildDir/outputs/aar/${getArtifactId()}-release.aar")
             }
         }
     }
@@ -56,7 +56,7 @@ properties.load(project.rootProject.file('local.properties').newDataInputStream(
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
-    publications = ["release"]
+    publications = ["uiRelease"]
     pkg {
         repo = "nepali-calendar"
         name = getPackageName()
