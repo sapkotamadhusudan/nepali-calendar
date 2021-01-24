@@ -127,7 +127,7 @@ class CalenderViewTests {
     fun `test max row count works without boundaries`() {
         val maxRowCount = 3
         val months = MonthConfig.generateUnboundedMonths(
-            magh2077.plusMonths(-40), magh2077.plusMonths(50),
+            magh2077.minusMonths(40), magh2077.plusMonths(50),
             firstDayOfWeek, maxRowCount, InDateStyle.ALL_MONTHS, OutDateStyle.END_OF_GRID
         )
 

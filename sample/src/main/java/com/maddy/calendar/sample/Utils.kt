@@ -87,7 +87,7 @@ fun generateFlights(): List<Flight> {
 
     list.add(
         Flight(
-            currentMonth.plusMonths(-1).atDay(9).atTime(20, 15),
+            currentMonth.minusMonths(1).atDay(9).atTime(20, 15),
             Airport("Asaba", "ABB"),
             Airport("Port Harcourt", "PHC"),
             R.color.orange_800

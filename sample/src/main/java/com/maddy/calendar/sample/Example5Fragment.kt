@@ -104,7 +104,7 @@ class Example5Fragment : BaseFragment(R.layout.example_5_fragment), HasToolbar {
 
         val currentMonth = ILocalDate.nowAD()
         binding.exFiveCalendar.setup(
-            currentMonth.plusMonths(-10),
+            currentMonth.minusMonths(10),
             currentMonth.plusMonths(10),
             daysOfWeek.first()
         )

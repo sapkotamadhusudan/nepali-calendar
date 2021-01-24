@@ -25,7 +25,7 @@ val LocalDate.next: ILocalDate
     get() = this.plusMonths(1)
 
 val LocalDate.previous: ILocalDate
-    get() = this.plusMonths(-1)
+    get() = this.minusMonths(1)
 
 internal const val NO_INDEX = -1
 

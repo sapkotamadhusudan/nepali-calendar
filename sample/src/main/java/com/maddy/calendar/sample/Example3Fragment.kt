@@ -139,7 +139,7 @@ class Example3Fragment : BaseFragment(R.layout.example_3_fragment), HasBackButto
         binding.exThreeCalendar.apply {
             val start = System.currentTimeMillis()
             setup(
-                currentMonth.plusYears(-10),
+                currentMonth.minusYear(10),
                 currentMonth.plusYears(10),
                 daysOfWeek.first()
             )

@@ -230,7 +230,7 @@ internal data class MonthConfig(
                 // Add in-dates if necessary
                 val firstWeek = groupByWeekOfMonth.first()
                 if (firstWeek.size < 7) {
-                    val previousMonth = yearMonth.plusMonths(-1)
+                    val previousMonth = yearMonth.minusMonths(1)
                     val inDates = (1..previousMonth.lengthOfMonth).toList()
                         .takeLast(7 - firstWeek.size).map {
                             CalendarDay(

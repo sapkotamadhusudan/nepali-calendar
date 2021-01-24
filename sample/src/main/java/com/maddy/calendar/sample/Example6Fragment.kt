@@ -91,7 +91,7 @@ class Example6Fragment : BaseFragment(R.layout.example_6_fragment), HasBackButto
         val daysOfWeek = daysOfWeekFromLocale()
         val currentMonth = ILocalDate.nowBS()
         binding.exSixCalendar.setup(
-            currentMonth.plusMonths(-10),
+            currentMonth.minusMonths(10),
             currentMonth.plusMonths(10),
             daysOfWeek.first()
         )

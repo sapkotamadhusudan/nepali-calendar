@@ -148,7 +148,7 @@ class ILocalDateTest {
         var changed = date.plusMonths(14)
         var javaChanged = javaDate.plusMonths(14)
 
-        changed = changed.plusMonths(-14)
+        changed = changed.minusMonths(14)
         javaChanged = javaChanged.minusMonths(14)
 
 
@@ -267,7 +267,7 @@ class ILocalDateTest {
     @Test
     fun addAndRemoveDays() {
         val date = ILocalDate.nowAD()
-        val changed = date.plusDays(100).plusDays(-100)
+        val changed = date.plusDays(100).minusDays(100)
         assertThat(date.year).isEqualTo(changed.year)
         assertThat(date.month).isEqualTo(changed.month)
         assertThat(date.dayOfMonth).isEqualTo(changed.dayOfMonth)

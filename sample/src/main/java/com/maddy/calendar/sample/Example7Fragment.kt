@@ -63,7 +63,7 @@ class Example7Fragment : BaseFragment(R.layout.example_7_fragment), HasToolbar, 
                         // We scroll to 4 days ago because we show max of five days on the screen
                         // so scrolling to 4 days ago brings the clicked date into full visibility
                         // at the end of the calendar view.
-                        binding.exSevenCalendar.smoothScrollToDate(day.date.plusDays(-4))
+                        binding.exSevenCalendar.smoothScrollToDate(day.date.minusDays(4))
                     }
 
                     // Example: If you want the clicked date to always be centered on the screen,

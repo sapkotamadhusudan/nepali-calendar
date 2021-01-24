@@ -49,7 +49,7 @@ class Example1Fragment : BaseFragment(R.layout.example_1_fragment), HasToolbar {
         }
 
         val currentMonth = ILocalDate.now(today.type)
-        val startMonth = currentMonth.plusMonths(-10)
+        val startMonth = currentMonth.minusMonths(10)
         val endMonth = currentMonth.plusMonths(10)
         binding.exOneCalendar.setup(startMonth, endMonth, daysOfWeek.first())
         binding.exOneCalendar.scrollToMonth(currentMonth)

@@ -1,6 +1,6 @@
 package com.maddy.calendar.core
 
-import java.util.*
+import java.util.Calendar
 
 /**
  * Constructor, previously validated.
@@ -73,11 +73,18 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
      * is used by calling [.getMonth].
      *
      * @return the month-of-year, from 1 to 12
-     * @see .getMonth
      */
     val monthValue: Int
         get() = month.value
 
+    /**
+     * Gets the name of month-of-year.
+     *
+     *
+     * This method returns the month name as an `String`.
+     *
+     * @return the name of month-of-year
+     */
     val monthName: String
         get() = Formatter.format(this, "MM")
 
@@ -139,26 +146,20 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         return this.atStartOfMonth().dayOfWeek
     }
 
-    fun setDates(year: Int, month: Int, dayOfMonth: Int): ILocalDate {
-        val copy = this.copy()
-        copy.year = checkValidYear(year)
-        copy.month = checkValidMonth(month)
-        copy.day = 1
-        val lengthOfMonth = copy.lengthOfMonth
-
-        if (dayOfMonth in 1..lengthOfMonth) {
-            copy.day = dayOfMonth
-        }
-        return copy
-    }
-
-    fun atDay(dayOfMonth: Int): ILocalDate {
-        if (dayOfMonth < 1 || dayOfMonth > lengthOfMonth) {
-            throw RuntimeException("Invalid value for DayOfMonth: $dayOfMonth")
-        }
-        return instance(year, month, dayOfMonth)
-    }
-
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of days added.
+     * <p>
+     * This method adds the specified amount to the days field incrementing the
+     * month and year fields as necessary to ensure the result remains valid.
+     * The result is only invalid if the maximum/minimum year is exceeded.
+     * <p>
+     * For example, 2008-12-31 plus one day would result in 2009-01-01.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param daysToAdd  the days to add, may be negative
+     * @return a {@code ILocalDate} based on this date with the days added
+     */
     fun plusDays(daysToAdd: Long): ILocalDate {
         if (daysToAdd == 0L) {
             return this
@@ -208,6 +209,43 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         }
     }
 
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of days subtracted.
+     * <p>
+     * This method subtracts the specified amount from the days field decrementing the
+     * month and year fields as necessary to ensure the result remains valid.
+     * The result is only invalid if the maximum/minimum year is exceeded.
+     * <p>
+     * For example, 2009-01-01 minus one day would result in 2008-12-31.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param daysToSubtract  the days to subtract, may be negative
+     * @return a {@code ILocalDate} based on this date with the days subtracted
+     */
+    fun minusDays(daysToSubtract: Long): ILocalDate {
+        return plusDays(-daysToSubtract)
+    }
+
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of months added.
+     * <p>
+     * This method adds the specified amount to the months field in three steps:
+     * <ol>
+     * <li>Add the input months to the month-of-year field</li>
+     * <li>Check if the resulting date would be invalid</li>
+     * <li>Adjust the day-of-month to the last valid day if necessary</li>
+     * </ol>
+     * <p>
+     * For example, 2007-03-31 plus one month would result in the invalid date
+     * 2007-04-31. Instead of returning an invalid result, the last valid day
+     * of the month, 2007-04-30, is selected instead.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param monthsToAdd  the months to add, may be negative
+     * @return a {@code ILocalDate} based on this date with the months added
+     */
     fun plusMonths(monthsToAdd: Long): ILocalDate {
         if (monthsToAdd == 0L) {
             return this
@@ -234,6 +272,48 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         return of(newYear, newMonth, newDay, this.type)
     }
 
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of months subtracted.
+     * <p>
+     * This method subtracts the specified amount from the months field in three steps:
+     * <ol>
+     * <li>Subtract the input months from the month-of-year field</li>
+     * <li>Check if the resulting date would be invalid</li>
+     * <li>Adjust the day-of-month to the last valid day if necessary</li>
+     * </ol>
+     * <p>
+     * For example, 2007-03-31 minus one month would result in the invalid date
+     * 2007-02-31. Instead of returning an invalid result, the last valid day
+     * of the month, 2007-02-28, is selected instead.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param monthsToSubtract  the months to subtract, may be negative
+     * @return a {@code ILocalDate} based on this date with the months subtracted
+     */
+    fun minusMonths(monthsToSubtract: Long): ILocalDate {
+        return plusMonths(-monthsToSubtract)
+    }
+
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of years added.
+     * <p>
+     * This method adds the specified amount to the years field in three steps:
+     * <ol>
+     * <li>Add the input years to the year field</li>
+     * <li>Check if the resulting date would be invalid</li>
+     * <li>Adjust the day-of-month to the last valid day if necessary</li>
+     * </ol>
+     * <p>
+     * For example, 2008-02-29 (leap year) plus one year would result in the
+     * invalid date 2009-02-29 (standard year). Instead of returning an invalid
+     * result, the last valid day of the month, 2009-02-28, is selected instead.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param yearsToAdd  the years to add, may be negative
+     * @return a {@code ILocalDate} based on this date with the years added
+     */
     fun plusYears(yearsToAdd: Long): ILocalDate {
         if (yearsToAdd == 0L) {
             return this
@@ -245,32 +325,38 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         return instance(newYear, month, newDay)
     }
 
-    private fun addSingleDay() {
-        this.day++
-        if (this.day > this.lengthOfMonth) {
-            this.day = 1
-            val newMonth = this.month.plus(1)
-            if (newMonth == Month.JANUARY_BAISHAK) {
-                this.year++
-            }
-            this.month = newMonth
-        }
-    }
-
-    private fun subtractSingleDay() {
-        this.day--
-        if (this.day < 1) {
-            val newMonth = this.month.minus(1)
-            if (newMonth == Month.DECEMBER_CHAITRA) {
-                this.year--
-            }
-            this.month = newMonth
-            this.day = this.lengthOfMonth
-        }
+    /**
+     * Returns a copy of this {@code ILocalDate} with the specified number of years subtracted.
+     * <p>
+     * This method subtracts the specified amount from the years field in three steps:
+     * <ol>
+     * <li>Subtract the input years from the year field</li>
+     * <li>Check if the resulting date would be invalid</li>
+     * <li>Adjust the day-of-month to the last valid day if necessary</li>
+     * </ol>
+     * <p>
+     * For example, 2008-02-29 (leap year) minus one year would result in the
+     * invalid date 2007-02-29 (standard year). Instead of returning an invalid
+     * result, the last valid day of the month, 2007-02-28, is selected instead.
+     * <p>
+     * This instance is immutable and unaffected by this method call.
+     *
+     * @param yearsToSubtract  the years to subtract, may be negative
+     * @return a {@code ILocalDate} based on this date with the years subtracted
+     */
+    fun minusYear(yearsToSubtract: Long): ILocalDate {
+        return plusYears(-yearsToSubtract)
     }
 
     fun reverse(): ILocalDate {
         return convert(this, if (this.type == Type.BS) Type.AD else Type.BS)
+    }
+
+    fun atDay(dayOfMonth: Int): ILocalDate {
+        if (dayOfMonth < 1 || dayOfMonth > lengthOfMonth) {
+            throw RuntimeException("Invalid value for DayOfMonth: $dayOfMonth")
+        }
+        return instance(year, month, dayOfMonth)
     }
 
     fun atStartOfMonth(): ILocalDate = instance(year, month, 1)
@@ -391,10 +477,6 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         return yearValue and -0x800 xor (yearValue shl 11) + (monthValue shl 6) + dayValue
     }
 
-    fun copy(): ILocalDate {
-        return instance(year, month, day)
-    }
-
     /**
      * Outputs this date as a {@code String}, such as {@code 2007-12-03 (BS)}.
      * <p>
@@ -406,10 +488,38 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         return "$year-$month-$day ($type)"
     }
 
+    fun copy(): ILocalDate {
+        return instance(year, month, day)
+    }
+
     protected abstract fun maxYear(): Int
     protected abstract fun minYear(): Int
     protected abstract fun firstDayOfYear(): Int
     protected abstract fun referenceDate(): ILocalDate
+
+    private fun addSingleDay() {
+        this.day++
+        if (this.day > this.lengthOfMonth) {
+            this.day = 1
+            val newMonth = this.month.plus(1)
+            if (newMonth == Month.JANUARY_BAISHAK) {
+                this.year++
+            }
+            this.month = newMonth
+        }
+    }
+
+    private fun subtractSingleDay() {
+        this.day--
+        if (this.day < 1) {
+            val newMonth = this.month.minus(1)
+            if (newMonth == Month.DECEMBER_CHAITRA) {
+                this.year--
+            }
+            this.month = newMonth
+            this.day = this.lengthOfMonth
+        }
+    }
 
     private val daysSinceReferenceDate: Long
         get() = Period.daysBetween(this.referenceDate(), this)
@@ -484,7 +594,7 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
         }
     }
 
-    internal object Utils{
+    internal object Utils {
 
         fun isLeapYear(year: Int, type: Type): Boolean {
             return if (type == Type.BS) {

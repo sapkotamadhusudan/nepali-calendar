@@ -232,7 +232,7 @@ class Example4Fragment : BaseFragment(R.layout.example_4_fragment), HasToolbar, 
     ): Boolean {
         if (startDate.yearMonth == endDate.yearMonth) return false
         if (outDate.yearMonth == endDate.yearMonth) return true
-        if (outDate.yearMonth.plusMonths(-1) == startDate.yearMonth) return true
+        if (outDate.yearMonth.minusMonths(1) == startDate.yearMonth) return true
         return outDate > startDate && outDate < endDate
     }
 
