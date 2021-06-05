@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.maddy.calendar.core.DayOfWeek
 import com.maddy.calendar.ui.model.*
-import com.maddy.calendar.ui.ui.*
+import com.maddy.calendar.ui.view.*
 import com.maddy.calendar.ui.utils.Size
 import com.maddy.calendar.ui.utils.job
 import kotlinx.coroutines.Dispatchers.Main

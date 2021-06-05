@@ -5,8 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
-import com.maddy.calendar.core.ILocalDate
 import com.maddy.calendar.ui.model.LocalDate
+import com.maddy.calendar.ui.model.YearMonth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
@@ -18,13 +18,13 @@ internal fun Boolean?.orFalse(): Boolean = this ?: false
 
 internal fun Int?.orZero(): Int = this ?: 0
 
-val LocalDate.yearMonth: ILocalDate
-    get() = this
+val LocalDate.yearMonth: YearMonth
+    get() = YearMonth.of(this.year, this.monthValue)
 
-val LocalDate.next: ILocalDate
+val YearMonth.next: YearMonth
     get() = this.plusMonths(1)
 
-val LocalDate.previous: ILocalDate
+val YearMonth.previous: YearMonth
     get() = this.minusMonths(1)
 
 internal const val NO_INDEX = -1

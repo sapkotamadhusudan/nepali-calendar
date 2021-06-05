@@ -1,5 +1,5 @@
 # Nepali CalendarView
-[ ![Download](https://api.bintray.com/packages/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:ui/images/download.svg?version=0.0.5) ](https://bintray.com/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:ui/0.0.5/link)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.sapkotamadhusudan/np-calendar-ui?color=green)
 
 A highly customizable calendar library for Android, powered by RecyclerView. Huge thanks to [CalendarView](https://github.com/kizitonwose/CalendarView) teams, this calendarView module is entirely based on the
 [CalendarView](https://github.com/kizitonwose/CalendarView) which is rewritten with Nepali Calendar Core API
@@ -37,7 +37,7 @@ Add the JitPack repository to your project level `build.gradle`:
 ```groovy
 allprojects {
  repositories {
-    maven { url  "https://dl.bintray.com/sapkotamadhusudan99/nepali-calendar" }
+    mavenCentral()
  }
 }
 ```
@@ -46,7 +46,7 @@ Add CalendarView to your app `build.gradle`:
 
 ```groovy
 dependencies {
-	implementation 'com.maddy.calendar:ui:<latest-version>'
+	implementation 'io.github.sapkotamadhusudan:np-calendar-ui:<latest-version>'
 }
 ```
 

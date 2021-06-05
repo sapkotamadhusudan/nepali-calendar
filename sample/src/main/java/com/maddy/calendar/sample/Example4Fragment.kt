@@ -22,9 +22,10 @@ import com.maddy.calendar.sample.databinding.Example4FragmentBinding
 import com.maddy.calendar.ui.model.CalendarDay
 import com.maddy.calendar.ui.model.CalendarMonth
 import com.maddy.calendar.ui.model.DayOwner
-import com.maddy.calendar.ui.ui.DayBinder
-import com.maddy.calendar.ui.ui.MonthHeaderFooterBinder
-import com.maddy.calendar.ui.ui.ViewContainer
+import com.maddy.calendar.ui.model.compareToYearMonth
+import com.maddy.calendar.ui.view.DayBinder
+import com.maddy.calendar.ui.view.MonthHeaderFooterBinder
+import com.maddy.calendar.ui.view.ViewContainer
 import com.maddy.calendar.ui.utils.yearMonth
 
 class Example4Fragment : BaseFragment(R.layout.example_4_fragment), HasToolbar, HasBackButton {
@@ -219,9 +220,9 @@ class Example4Fragment : BaseFragment(R.layout.example_4_fragment), HasToolbar, 
         startDate: ILocalDate,
         endDate: ILocalDate
     ): Boolean {
-        if (startDate.yearMonth == endDate.yearMonth) return false
-        if (inDate.yearMonth == startDate.yearMonth) return true
-        if (inDate.yearMonth.plusMonths(1) == endDate.yearMonth) return true
+        if (startDate.yearMonth.compareToYearMonth(endDate.yearMonth) == 0) return false
+        if (inDate.yearMonth.compareToYearMonth(startDate.yearMonth) == 0) return true
+        if (inDate.yearMonth.plusMonths(1).compareToYearMonth(endDate.yearMonth) == 0) return true
         return inDate > startDate && inDate < endDate
     }
 
@@ -230,9 +231,9 @@ class Example4Fragment : BaseFragment(R.layout.example_4_fragment), HasToolbar, 
         startDate: ILocalDate,
         endDate: ILocalDate
     ): Boolean {
-        if (startDate.yearMonth == endDate.yearMonth) return false
-        if (outDate.yearMonth == endDate.yearMonth) return true
-        if (outDate.yearMonth.minusMonths(1) == startDate.yearMonth) return true
+        if (startDate.yearMonth.compareToYearMonth( endDate.yearMonth) == 0) return false
+        if (outDate.yearMonth.compareToYearMonth(endDate.yearMonth) == 0) return true
+        if (outDate.yearMonth.minusMonths(1).compareToYearMonth(startDate.yearMonth) == 0) return true
         return outDate > startDate && outDate < endDate
     }
 

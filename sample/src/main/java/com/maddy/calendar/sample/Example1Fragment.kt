@@ -18,8 +18,8 @@ import com.maddy.calendar.ui.model.CalendarDay
 import com.maddy.calendar.ui.model.DayOwner
 import com.maddy.calendar.ui.model.InDateStyle
 import com.maddy.calendar.ui.model.compareToYearMonth
-import com.maddy.calendar.ui.ui.DayBinder
-import com.maddy.calendar.ui.ui.ViewContainer
+import com.maddy.calendar.ui.view.DayBinder
+import com.maddy.calendar.ui.view.ViewContainer
 import com.maddy.calendar.ui.utils.next
 import com.maddy.calendar.ui.utils.yearMonth
 import java.util.*

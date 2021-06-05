@@ -1,4 +1,4 @@
-package com.maddy.calendar.ui.ui
+package com.maddy.calendar.ui.view
 
 import android.content.Context
 import android.graphics.Rect

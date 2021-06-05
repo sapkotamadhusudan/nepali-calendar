@@ -18,9 +18,9 @@ import com.maddy.calendar.sample.databinding.Example6FragmentBinding
 import com.maddy.calendar.ui.model.CalendarDay
 import com.maddy.calendar.ui.model.CalendarMonth
 import com.maddy.calendar.ui.model.DayOwner
-import com.maddy.calendar.ui.ui.DayBinder
-import com.maddy.calendar.ui.ui.MonthHeaderFooterBinder
-import com.maddy.calendar.ui.ui.ViewContainer
+import com.maddy.calendar.ui.view.DayBinder
+import com.maddy.calendar.ui.view.MonthHeaderFooterBinder
+import com.maddy.calendar.ui.view.ViewContainer
 import com.maddy.calendar.ui.utils.Size
 
 // We assign this class to the `monthViewClass` attribute in XML.

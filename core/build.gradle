@@ -1,78 +1,15 @@
 plugins {
     id 'java-library'
     id 'kotlin'
-    id 'com.jfrog.bintray' version "1.8.1"
-    id 'maven-publish'
 }
 
-def getVersionName = { ->
-    return "0.0.5"
+ext {
+    PUBLISH_GROUP_ID = 'io.github.sapkotamadhusudan'
+    PUBLISH_VERSION = '1.0.0'
+    PUBLISH_ARTIFACT_ID = 'np-calendar-core'
+    PUBLISH_DESCRIPTION = 'A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali.'
 }
-
-def getDescription = { ->
-    return "A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali."
-}
-
-def getVCSUrl = { ->
-    return "https://github.com/sapkotamadhusudan/nepali-calendar"
-}
-
-def getLicense = { ->
-    return ["MIT"]
-}
-
-def getArtifactId = { ->
-    return "core"
-}
-
-def getGroupId = { ->
-    return "com.maddy.calendar"
-}
-
-def getPackageName = {->
-    return getGroupId() + ":" + getArtifactId()
-}
-
-def getGitHubUrl = { ->
-    return "https://maven.pkg.github.com/sapkotamadhusudan/nepali-calendar"
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            coreRelease(MavenPublication) {
-
-                groupId getGroupId()
-                artifactId getArtifactId()
-                version getVersionName()
-                // Place the path of your artifact here
-                artifact("$buildDir/libs/${getArtifactId()}.jar")
-            }
-        }
-    }
-}
-
-// Bintray config
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    publications = ["coreRelease"]
-    pkg {
-        repo = "nepali-calendar"
-        name = getPackageName()
-        desc = getDescription()
-        licenses = getLicense()
-        vcsUrl = getVCSUrl()
-        version {
-            name = getVersionName()
-            vcsTag = getVersionName()
-            released = new Date()
-        }
-    }
-}
+apply from: "${rootProject.projectDir}/scripts/publish-module.gradle"
 
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
@@ -82,6 +19,6 @@ java {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 
-    testImplementation 'junit:junit:4.13.1'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation "com.google.truth:truth:1.1"
 }

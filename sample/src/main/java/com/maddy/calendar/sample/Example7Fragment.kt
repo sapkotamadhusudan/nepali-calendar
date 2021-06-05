@@ -13,8 +13,8 @@ import com.maddy.calendar.core.ILocalDate
 import com.maddy.calendar.sample.databinding.Example7CalendarDayBinding
 import com.maddy.calendar.sample.databinding.Example7FragmentBinding
 import com.maddy.calendar.ui.model.CalendarDay
-import com.maddy.calendar.ui.ui.DayBinder
-import com.maddy.calendar.ui.ui.ViewContainer
+import com.maddy.calendar.ui.view.DayBinder
+import com.maddy.calendar.ui.view.ViewContainer
 import com.maddy.calendar.ui.utils.Size
 
 class Example7Fragment : BaseFragment(R.layout.example_7_fragment), HasToolbar, HasBackButton {

@@ -1,5 +1,5 @@
 # Nepali Calendar
-[ ![Download](https://api.bintray.com/packages/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:core/images/download.svg?version=0.0.5) ](https://bintray.com/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:core/0.0.5/link)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.sapkotamadhusudan/np-calendar-core?color=green)
 
 A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali.
 
@@ -12,7 +12,7 @@ Add the JitPack repository to your project level `build.gradle`:
 ```groovy
 allprojects {
  repositories {
-    maven { url  "https://dl.bintray.com/sapkotamadhusudan99/nepali-calendar" }
+    mavenCentral()
  }
 }
 ```
@@ -21,7 +21,7 @@ Add CalendarView to your app `build.gradle`:
 
 ```groovy
 dependencies {
-	implementation 'com.maddy.calendar:core:<latest-version>'
+	implementation 'io.github.sapkotamadhusudan:np-calendar-core:<latest-version>'
 }
 ```
 

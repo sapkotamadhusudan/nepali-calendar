@@ -1,5 +1,5 @@
 # Nepali Calendar
-[ ![Download](https://api.bintray.com/packages/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:core/images/download.svg?version=0.0.5) ](https://bintray.com/sapkotamadhusudan99/nepali-calendar/com.maddy.calendar:core/0.0.5/link)
+![Maven Central](https://img.shields.io/maven-central/v/io.github.sapkotamadhusudan/np-calendar-core?color=green)
 
 A Nepali Calendar used to manage nepali dates and also convert AD dates to nepali.
 
@@ -11,9 +11,7 @@ Add the following code to your project's **build.gradle** file:
 
 ```groovy
 repositories {
-	maven {
-		url  "https://dl.bintray.com/sapkotamadhusudan99/nepali-calendar"
-	}
+	mavenCentral()
 }
 ```
 
@@ -21,8 +19,8 @@ And the following code to your **module's** `build.gradle` file:
 
 ```groovy
 dependencies {
-    implementation "com.maddy.calendar:core:<latest-version>"
-	implementation "com.maddy.calendar:ui:<latest-version>"
+    implementation "io.github.sapkotamadhusudan:np-calendar-core:<latest-version>"
+	implementation "io.github.sapkotamadhusudan:np-calendar-ui:<latest-version>"
 }
 ```
 
