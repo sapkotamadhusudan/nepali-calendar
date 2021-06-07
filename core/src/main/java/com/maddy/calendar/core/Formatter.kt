@@ -97,7 +97,7 @@ object Formatter {
                 "yyyy" -> yearName(date.year, date.type)
                 "MMMM" -> monthName(date.month, date.type, false)
                 "MMM" -> monthName(date.month, date.type, true)
-                "MM" -> date.monthValue.toString().padStart(2, '0')
+                "MM" -> getNpCharacter(date.monthValue.toLong()).padStart(2, npNumberChars[1] ?: ' ')
                 "EEEE" -> weekDayName(date.dayOfWeek, date.type, false)
                 "EEE" -> weekDayName(date.dayOfWeek, date.type, true)
                 "dd" -> dayName(date.dayOfMonth, date.type)
