@@ -7,6 +7,7 @@ import java.time.YearMonth
 import java.time.temporal.ChronoUnit
 import java.time.temporal.TemporalAdjusters
 import java.time.temporal.WeekFields
+import java.util.*
 
 class ILocalDateTest {
 
@@ -280,6 +281,54 @@ class ILocalDateTest {
         assertThat(date.year).isEqualTo(reversed.year)
         assertThat(date.month).isEqualTo(reversed.month)
         assertThat(date.dayOfMonth).isEqualTo(reversed.dayOfMonth)
+    }
+
+    @Test
+    fun `test BS Date Formatter`(){
+        val date = ILocalDate.ofBS(2078, 1,1)
+        assertThat(Formatter.format(date, "d")).isEqualTo("०१")
+        assertThat(Formatter.format(date, "MMM")).isEqualTo("बैशाख")
+        assertThat(Formatter.format(date, "MMMM")).isEqualTo("बैशाख")
+        assertThat(Formatter.format(date, "EEE")).isEqualTo("बुध")
+        assertThat(Formatter.format(date, "EEEE")).isEqualTo("बुधबार")
+        assertThat(Formatter.format(date, "yyyy-MM-dd")).isEqualTo("२०७८-०१-०१")
+        assertThat(Formatter.format(date, "yyyy-MM-dd", ILocalDate.Type.AD)).isEqualTo("2078-01-01")
+    }
+
+    @Test
+    fun `test AD Date Formatter`(){
+        val date = ILocalDate.ofAD(2021, 1,1)
+        assertThat(Formatter.format(date, "d")).isEqualTo("01")
+        assertThat(Formatter.format(date, "MMM")).isEqualTo("Jan")
+        assertThat(Formatter.format(date, "MMMM")).isEqualTo("January")
+        assertThat(Formatter.format(date, "EEE")).isEqualTo("Fri")
+        assertThat(Formatter.format(date, "EEEE")).isEqualTo("Friday")
+        assertThat(Formatter.format(date, "yyyy-MM-dd")).isEqualTo("2021-01-01")
+        assertThat(Formatter.format(date, "yyyy-MM-dd", ILocalDate.Type.BS)).isEqualTo("२०२१-०१-०१")
+    }
+
+    @Test
+    fun `test ILocalDate of`(){
+        val ad = ILocalDate.of(Date(2021-1900, 1,1))
+
+        assertThat(ad.year).isEqualTo(2021)
+        assertThat(ad.monthValue).isEqualTo(1)
+        assertThat(ad.dayOfMonth).isEqualTo(1)
+
+        val bs = ad.reverse()
+        assertThat(bs.year).isEqualTo(2077)
+        assertThat(bs.monthValue).isEqualTo(9)
+        assertThat(bs.dayOfMonth).isEqualTo(17)
+    }
+
+    @Test
+    fun `test ILocalDate of with date and Type BS`(){
+        val date = Date(2021-1900, 1,1)
+        val bs = ILocalDate.of(date, ILocalDate.Type.BS)
+
+        assertThat(bs.year).isEqualTo(2077)
+        assertThat(bs.monthValue).isEqualTo(9)
+        assertThat(bs.dayOfMonth).isEqualTo(17)
     }
 
 }

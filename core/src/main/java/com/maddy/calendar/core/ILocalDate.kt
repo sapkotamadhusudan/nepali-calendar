@@ -1,6 +1,7 @@
 package com.maddy.calendar.core
 
-import java.util.Calendar
+import java.time.LocalDate
+import java.util.*
 
 /**
  * Constructor, previously validated.
@@ -575,6 +576,30 @@ abstract class ILocalDate private constructor(year: Int, month: Month, dayOfMont
 
         fun ofAD(year: Int, month: Int = 1, dayOfMonth: Int = 1): ILocalDate {
             return ADLocalDate(year, Month.of(month), dayOfMonth)
+        }
+
+        fun of(date: Date, type: Type = Type.AD): ILocalDate {
+            val calendar = Calendar.getInstance()
+            calendar.timeInMillis = date.time
+            return of(calendar, type)
+        }
+
+        fun of(date: LocalDate, type: Type = Type.AD): ILocalDate {
+            return when (type) {
+                Type.AD -> ofAD(date.year, date.monthValue, date.dayOfMonth)
+                Type.BS -> of(date).reverse()
+            }
+        }
+
+        fun of(calendar: Calendar, type: Type = Type.AD): ILocalDate {
+            return when (type) {
+                Type.AD -> ofAD(
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH) + 1,
+                    calendar.get(Calendar.DATE)
+                )
+                Type.BS -> of(calendar).reverse()
+            }
         }
 
         fun convert(date: ILocalDate, type: Type): ILocalDate {

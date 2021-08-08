@@ -60,15 +60,15 @@ val currentBSDate = ILocalDate.nowBS()
 
 // Add a day,month and year
 var changed = currentBSDate
-				.plusDay(1)
-				.plusMonth(1)
-				.plusYear(1)
+				.plusDays(1)
+				.plusMonths(1)
+				.plusYears(1)
 
 // Substract a day,month and year
 var changed = currentBSDate
-				.plusDay(-1)
-				.plusMonth(-1)
-				.plusYear(-1)
+				.minusDays(1)
+				.minusMonths(1)
+				.minusYear(1)
 ```
 
 
