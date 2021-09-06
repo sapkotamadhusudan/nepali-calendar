@@ -309,7 +309,7 @@ class ILocalDateTest {
 
     @Test
     fun `test ILocalDate of`(){
-        val ad = ILocalDate.of(Date(2021-1900, 1,1))
+        val ad = ILocalDate.of(Date(2021-1900, 0 /* Date month ranges are 0-11  */,1))
 
         assertThat(ad.year).isEqualTo(2021)
         assertThat(ad.monthValue).isEqualTo(1)
@@ -323,12 +323,46 @@ class ILocalDateTest {
 
     @Test
     fun `test ILocalDate of with date and Type BS`(){
-        val date = Date(2021-1900, 1,1)
+        val date = Date(2021-1900, 0  /* Date month ranges are 0-11  */,1)
         val bs = ILocalDate.of(date, ILocalDate.Type.BS)
 
         assertThat(bs.year).isEqualTo(2077)
         assertThat(bs.monthValue).isEqualTo(9)
         assertThat(bs.dayOfMonth).isEqualTo(17)
+    }
+
+    @Test
+    fun `test Convert AD Type to BS`(){
+        val nowBS = ILocalDate.nowBS()
+
+        val bsDateByReverse = ILocalDate.nowAD().reverse()
+
+        assertThat(bsDateByReverse).isEqualTo(nowBS)
+
+        val bsDateFromAdILocalDate = ILocalDate.convert(ILocalDate.nowAD(), ILocalDate.Type.BS)
+
+        assertThat(bsDateFromAdILocalDate).isEqualTo(nowBS)
+
+        val bsDateFromYearMonthDay = ILocalDate.convertToBS(2021, 9, 6)
+
+        assertThat(bsDateFromYearMonthDay.year).isEqualTo(2078)
+        assertThat(bsDateFromYearMonthDay.monthValue).isEqualTo(5)
+        assertThat(bsDateFromYearMonthDay.dayOfMonth).isEqualTo(21)
+    }
+
+    @Test
+    fun `test Convert BS Type to AD`(){
+
+        val nowAD = ILocalDate.nowAD()
+
+        val adDateByReverse = ILocalDate.nowBS().reverse()
+
+        assertThat(adDateByReverse).isEqualTo(nowAD)
+
+        val adDateFromAdILocalDate = ILocalDate.convert(ILocalDate.nowBS(), ILocalDate.Type.AD)
+
+        assertThat(adDateFromAdILocalDate).isEqualTo(nowAD)
+
     }
 
 }

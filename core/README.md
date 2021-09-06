@@ -40,6 +40,10 @@ val currentBSDate = ILocalDate.nowBS()
 val providedBSDate = ILocalDate.ofBS(2077, 10, 11)
 
 val withType = ILocalDate.of(2077, 10, 11, ILocalDate.Type.BS)
+
+val fromCalendar = ILocalDate.of(Calendar.getInstance(), ILocalDate.Type.BS)
+
+val fromJavaTime = ILocalDate.of(LocalDate.now(), ILocalDate.Type.BS)
 ```
 
 or 
@@ -51,9 +55,32 @@ val currentADDate = ILocalDate.nowAD()
 val providedADDate = ILocalDate.ofAD(2021, 1, 24)
 
 val withType = ILocalDate.of(2077, 10, 11, ILocalDate.Type.AD)
+
+val fromCalendar = ILocalDate.of(Calendar.getInstance(), ILocalDate.Type.AD)
+
+val fromJavaTime = ILocalDate.of(LocalDate.now(), ILocalDate.Type.AD)
 ```
 
-##### Add or Substract days, month, year
+
+##### Date Conversion
+
+###### AD To BS Date Conversion
+```
+val bsDateByReverse = ILocalDate.nowAD().reverse()
+
+val bsDateFromAdILocalDate = ILocalDate.convert(ILocalDate.nowAD(), ILocalDate.Type.BS)
+
+val bsDateFromYearMonthDay = ILocalDate.convertToBS(2021, 9, 5)
+```
+
+###### BS To AD Date Conversion
+```
+val adDateByReverse = ILocalDate.nowBS().reverse()
+
+val adDateFromAdILocalDate = ILocalDate.convert(ILocalDate.nowBS(), ILocalDate.Type.AD)
+```
+
+##### Add or Subtract days, month, year
 
 ```
 val currentBSDate = ILocalDate.nowBS()
@@ -64,7 +91,7 @@ var changed = currentBSDate
 				.plusMonths(1)
 				.plusYears(1)
 
-// Substract a day,month and year
+// Subtract a day,month and year
 var changed = currentBSDate
 				.minusDays(1)
 				.minusMonths(1)
@@ -73,7 +100,7 @@ var changed = currentBSDate
 
 
 
-##### Get Lenght Of Month
+##### Get Length Of Month
 
 ```
 val currentBSDate = ILocalDate.nowBS()
@@ -82,7 +109,7 @@ var maxDaysInMonth = currentBSDate.lengthOfMonth
 ```
 
 
-##### Get Lenght Of Year
+##### Get Length Of Year
 
 ```
 val currentBSDate = ILocalDate.nowBS()
